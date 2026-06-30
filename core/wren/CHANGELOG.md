@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.12.0](https://github.com/Canner/WrenAI/compare/wren-v0.11.0...wren-v0.12.0) (2026-06-30)
+
+
+### Features
+
+* **wren:** add cross-dialect type translation to type_mapping ([#2410](https://github.com/Canner/WrenAI/issues/2410)) ([e124ff5](https://github.com/Canner/WrenAI/commit/e124ff538f512716a4d4779d495c6f4e38e3e072))
+
+
+### Bug Fixes
+
+* **athena:** treat DECIMAL(p) as scale 0, not a default non-zero scale ([#2403](https://github.com/Canner/WrenAI/issues/2403)) ([22d3125](https://github.com/Canner/WrenAI/commit/22d3125ced39c4e463ebff4d6c05bbeac1ea6209))
+* **genbi:** normalise null apps/schema_version in app index ([#2406](https://github.com/Canner/WrenAI/issues/2406)) ([0c031d6](https://github.com/Canner/WrenAI/commit/0c031d60b0fdbb28925970622434721f3fd631db))
+* **policy:** block table-valued functions reached via JOIN in strict mode ([#2405](https://github.com/Canner/WrenAI/issues/2405)) ([a2a37b3](https://github.com/Canner/WrenAI/commit/a2a37b39556f05e2aaa1a9550540cec1ed0a1aed))
+* **postgres:** strip trailing semicolon before subquery-wrapping ([#2407](https://github.com/Canner/WrenAI/issues/2407)) ([3122f4f](https://github.com/Canner/WrenAI/commit/3122f4fbeda1175de21078296f7aaa4cf38b87cb))
+* **trino:** treat DECIMAL(p) as scale 0, not a default non-zero scale ([#2404](https://github.com/Canner/WrenAI/issues/2404)) ([1be4baa](https://github.com/Canner/WrenAI/commit/1be4baaeba6f6a54febda73a5850bb47f25c6f40))
+
 ## [0.11.0](https://github.com/Canner/WrenAI/compare/wren-v0.10.1...wren-v0.11.0) (2026-06-26)
 
 
