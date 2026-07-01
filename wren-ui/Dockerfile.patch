@@ -1,0 +1,4 @@
+FROM ghcr.io/canner/wren-ui:0.32.2
+
+# Patch: remove the 4MB API response size limit for /api/graphql
+RUN sed -i 's|api:{bodyParser:\!1}|api:{bodyParser:!1,responseLimit:!1}|g' /app/.next/server/pages/api/graphql.js

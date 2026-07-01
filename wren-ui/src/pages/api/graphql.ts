@@ -24,6 +24,7 @@ const cors = microCors();
 export const config: PageConfig = {
   api: {
     bodyParser: false,
+    responseLimit: false,
   },
 };
 
