@@ -1,0 +1,231 @@
+"""
+批量修改模型 ID=45 (网路受损机房受损区域15分) 的显示名和描述
+使用精确的字段映射数据，通过 wren-ui GraphQL API 更新
+"""
+
+import requests
+import json
+import sys
+
+# ========== 配置 ==========
+GRAPHQL_URL = "http://wren-ui:3000/api/graphql"
+MODEL_ID = 45
+MODEL_NEW_DISPLAY_NAME = "网路受损机房受损区域15分"
+MODEL_NEW_DESCRIPTION = (
+    "记录了机房受损情况的性能数据，用于监控和分析机房受损情况，"  
+    "帮助及时发现和处理问题，保障网络稳定运行"
+)
+# ==========================
+
+# ===== 精确字段映射 (英文引用名 -> 中文显示名, 描述) =====
+# 键为小写引用名（与 WrenAI 中存储的一致）
+FIELD_MAP = {
+    "stat_date":                ("时间", "记录数据的时间"),
+    "area_type_code":           ("区域类型编码", "区域类型的编码"),
+    "area_type_name":           ("区域类型名称", "区域类型的名称"),
+    "area_code":                ("区域编码", "区域的编码"),
+    "area_name":                ("区域名称", "区域的名称"),
+    "r_iop_os":                 ("恢复数一干光路中断", "一干光路中断的恢复次数"),
+    "r_iop_oso":                ("恢复数一干一点开环", "一干一点开环的恢复次数"),
+    "r_iop_ost":                ("恢复数一干两点断环", "一干两点断环的恢复次数"),
+    "r_iop_ts":                 ("恢复数二干光路中断", "二干光路中断的恢复次数"),
+    "r_iop_tso":                ("恢复数二干一点开环", "二干一点开环的恢复次数"),
+    "r_iop_tst":                ("恢复数二干两点断环", "二干两点断环的恢复次数"),
+    "r_iop_ln":                 ("恢复数本地网光路中断", "本地网光路中断的恢复次数"),
+    "r_iop_lno":                ("恢复数本地网一点开环", "本地网一点开环的恢复次数"),
+    "r_iop_lnt":                ("恢复数本地网两点断环", "本地网两点断环的恢复次数"),
+    "r_iop_ots":                ("恢复数一二干光路中断数", "一干和二干光路中断的恢复次数"),
+    "dcnsw_iop_ln":             ("日累计次数本地网光路", "本地网光路的日累计次数"),
+    "dcnsw_iop_ots":            ("日累计次数一二干光路", "一干和二干光路的日累计次数"),
+    "r_dcnsw_iop_ln":           ("日累计恢复次数本地网光路", "本地网光路的日累计恢复次数"),
+    "r_dcnsw_iop_ots":          ("日累计恢复次数一二干光路", "一干和二干光路的日累计恢复次数"),
+    "awdgp_event_id":           ("保障事件ID", "保障事件的唯一标识"),
+    "awdgp_iop_ln":             ("保障期间累计次数本地网光路", "本地网光路在保障期间的累计次数"),
+    "awdgp_iop_ots":            ("保障期间累计次数一二干光路", "一干和二干光路在保障期间的累计次数"),
+    "r_awdgp_iop_ln":           ("保障期间累计恢复次数本地网光路", "本地网光路在保障期间的累计恢复次数"),
+    "r_awdgp_iop_ots":          ("保障期间累计恢复次数一二干光路", "一干和二干光路在保障期间的累计恢复次数"),
+    "cpy_iop_ln":               ("昨日同期比本地网光路", "本地网光路昨日同期的比较"),
+    "cpy_iop_ots":              ("昨日同期比一二干光路", "一干和二干光路昨日同期的比较"),
+    "r_iop_ln_access":          ("恢复数本地网光路中断数接入", "本地网光路中断数接入的恢复次数"),
+    "r_iop_ln_convergence":     ("恢复数本地网光路中断数汇聚", "本地网光路中断数汇聚的恢复次数"),
+    "r_iop_ln_backbone":        ("恢复数本地网光路中断数骨干", "本地网光路中断数骨干的恢复次数"),
+    "dcnsw_iop_ln_access":      ("日累计次数本地网光路中断数接入", "本地网光路中断数接入的日累计次数"),
+    "dcnsw_iop_ln_convergence": ("日累计次数本地网光路中断数汇聚", "本地网光路中断数汇聚的日累计次数"),
+    "dcnsw_iop_ln_backbone":    ("日累计次数本地网光路中断数骨干", "本地网光路中断数骨干的日累计次数"),
+    "r_dcnsw_iop_ln_access":    ("日累计恢复次数本地网光路中断数接入", "本地网光路中断数接入的日累计恢复次数"),
+    "r_dcnsw_iop_ln_convergence": ("日累计恢复次数本地网光路中断数汇聚", "本地网光路中断数汇聚的日累计恢复次数"),
+    "r_dcnsw_iop_ln_backbone":  ("日累计恢复次数本地网光路中断数骨干", "本地网光路中断数骨干的日累计恢复次数"),
+    "awdgp_iop_ln_access":      ("保障期间累计次数本地网光路中断数接入", "本地网光路中断数接入在保障期间的累计次数"),
+    "awdgp_iop_ln_convergence": ("保障期间累计次数本地网光路中断数汇聚", "本地网光路中断数汇聚在保障期间的累计次数"),
+    "awdgp_iop_ln_backbone":    ("保障期间累计次数本地网光路中断数骨干", "本地网光路中断数骨干在保障期间的累计次数"),
+    "r_awdgp_iop_ln_access":    ("保障期间累计恢复次数本地网光路中断数接入", "本地网光路中断数接入在保障期间的累计恢复次数"),
+    "r_awdgp_iop_ln_convergence": ("保障期间累计恢复次数本地网光路中断数汇聚", "本地网光路中断数汇聚在保障期间的累计恢复次数"),
+    "r_awdgp_iop_ln_backbone":  ("保障期间累计恢复次数本地网光路中断数骨干", "本地网光路中断数骨干在保障期间的累计恢复次数"),
+    "cpy_iop_ln_access":        ("昨日同期比本地网光路中断数接入", "本地网光路中断数接入昨日同期的比较"),
+    "cpy_iop_ln_convergence":   ("昨日同期比本地网光路中断数汇聚", "本地网光路中断数汇聚昨日同期的比较"),
+    "cpy_iop_ln_backbone":      ("昨日同期比本地网光路中断数骨干", "本地网光路中断数骨干昨日同期的比较"),
+}
+
+
+def graphql_request(query, variables=None):
+    """发送 GraphQL 请求"""
+    payload = {"query": query}
+    if variables:
+        payload["variables"] = variables
+    try:
+        resp = requests.post(GRAPHQL_URL, json=payload, timeout=30)
+        resp.raise_for_status()
+        result = resp.json()
+        if "errors" in result:
+            print(f"❌ GraphQL 错误: {json.dumps(result['errors'], ensure_ascii=False, indent=2)}")
+            return None
+        return result
+    except Exception as e:
+        print(f"❌ 请求失败: {e}")
+        return None
+
+
+def get_model_fields(model_id):
+    """查询指定模型的所有字段"""
+    query = """
+    query {
+        listModels {
+            id
+            displayName
+            referenceName
+            description
+            fields {
+                id
+                displayName
+                referenceName
+                properties
+            }
+        }
+    }
+    """
+    result = graphql_request(query)
+    if not result:
+        return None, None
+    for model in result["data"]["listModels"]:
+        if model["id"] == model_id:
+            return model, model["fields"]
+    return None, None
+
+
+def preview_changes(model, fields):
+    """预览所有将要修改的内容"""
+    print("\n" + "=" * 100)
+    print("  📋 变更预览")
+    print("=" * 100)
+
+    print(f"\n  【模型】")
+    print(f"  当前别名: {model['displayName']}")
+    print(f"  新的别名: {MODEL_NEW_DISPLAY_NAME}")
+    print(f"  新的描述: {MODEL_NEW_DESCRIPTION}")
+
+    columns_update = []
+    matched = 0
+    unmatched = 0
+
+    print(f"\n  【字段变更】(共 {len(fields)} 个字段)")
+    print(f"  {'ID':<6} {'引用名':<30} {'当前显示名':<30} → {'新显示名':<30} {'新描述'}")
+    print(f"  {'─'*6} {'─'*30} {'─'*30}   {'─'*30} {'─'*30}")
+
+    for f in fields:
+        ref_name = f["referenceName"]
+        if ref_name in FIELD_MAP:
+            new_display, new_desc = FIELD_MAP[ref_name]
+            old_display = f["displayName"]
+            old_desc = ""
+            if f.get("properties") and isinstance(f["properties"], dict):
+                old_desc = f["properties"].get("description", "")
+
+            changed = (old_display != new_display) or (old_desc != new_desc)
+            marker = "🔄" if changed else "✅"
+            print(f"  {marker} {f['id']:<4} {ref_name:<28} {old_display:<28} → {new_display:<28} {new_desc}")
+
+            columns_update.append({
+                "id": f["id"],
+                "displayName": new_display,
+                "description": new_desc
+            })
+            matched += 1
+        else:
+            print(f"  ⚠️  {f['id']:<4} {ref_name:<28} {f['displayName']:<28} → (未在映射表中，跳过)")
+            unmatched += 1
+
+    print(f"\n  📊 统计: 匹配 {matched} 个字段, 未匹配 {unmatched} 个字段")
+    print(f"  📝 映射表共 {len(FIELD_MAP)} 条记录")
+    return columns_update
+
+
+def execute_update(model_id, columns_update):
+    """执行更新"""
+    mutation = """
+    mutation UpdateModelMetadata($where: ModelWhereInput!, $data: UpdateModelMetadataInput!) {
+        updateModelMetadata(where: $where, data: $data)
+    }
+    """
+    variables = {
+        "where": {"id": model_id},
+        "data": {
+            "displayName": MODEL_NEW_DISPLAY_NAME,
+            "description": MODEL_NEW_DESCRIPTION,
+            "columns": columns_update
+        }
+    }
+
+    print("\n⏳ 正在提交更新...")
+    result = graphql_request(mutation, variables)
+    if result and result.get("data", {}).get("updateModelMetadata"):
+        print("✅ 模型元数据更新成功！")
+        return True
+    else:
+        print("❌ 更新失败")
+        return False
+
+
+def deploy():
+    """触发 Deploy"""
+    mutation = "mutation { deploy }"
+    print("\n⏳ 正在 Deploy...")
+    result = graphql_request(mutation)
+    if result:
+        print("✅ Deploy 成功，变更已生效！")
+    else:
+        print("❌ Deploy 失败，请手动在 UI 上点击 Deploy")
+
+
+if __name__ == "__main__":
+    print(f"🔍 正在查询模型 ID={MODEL_ID} 的信息...\n")
+
+    model, fields = get_model_fields(MODEL_ID)
+    if not model:
+        print(f"❌ 未找到模型 ID={MODEL_ID}")
+        sys.exit(1)
+
+    print(f"  找到模型: {model['displayName']} ({model['referenceName']})")
+    print(f"  共 {len(fields)} 个字段")
+
+    # 1. 预览
+    columns = preview_changes(model, fields)
+
+    # 2. 确认
+    print("\n" + "=" * 100)
+    confirm = input("  ❓ 是否执行以上变更? (y/n): ").strip().lower()
+    if confirm != "y":
+        print("  ❎ 已取消")
+        sys.exit(0)
+
+    # 3. 更新
+    success = execute_update(MODEL_ID, columns)
+
+    # 4. Deploy
+    if success:
+        deploy_confirm = input("\n  ❓ 是否立即 Deploy? (y/n): ").strip().lower()
+        if deploy_confirm == "y":
+            deploy()
+        else:
+            print("  ⚠️  请记得手动 Deploy！")
+
+    print("\n🏁 完成")

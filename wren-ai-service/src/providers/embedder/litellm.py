@@ -97,15 +97,19 @@ class AsyncDocumentEmbedder:
     async def _embed_batch(
         self, texts_to_embed: List[str], batch_size: int
     ) -> Tuple[List[List[float]], Dict[str, Any]]:
+        # 限制底层的 API 并发请求数，防止大批量请求瞬间将大模型/Embedding 服务端的 NPU/GPU 撑爆
+        semaphore = asyncio.Semaphore(2)
+
         async def embed_single_batch(batch: List[str]) -> Any:
-            return await aembedding(
-                model=self._model,
-                input=batch,
-                api_key=self._api_key,
-                api_base=self._api_base_url,
-                timeout=self._timeout,
-                **self._kwargs,
-            )
+            async with semaphore:
+                return await aembedding(
+                    model=self._model,
+                    input=batch,
+                    api_key=self._api_key,
+                    api_base=self._api_base_url,
+                    timeout=self._timeout,
+                    **self._kwargs,
+                )
 
         batches = [
             texts_to_embed[i : i + batch_size]

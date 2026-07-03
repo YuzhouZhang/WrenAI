@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: wren-cli-tools
+  namespace: default
+spec:
+  containers:
+  - name: wren-cli
+    image: wrenai-cli:0.12.0
+    imagePullPolicy: IfNotPresent
