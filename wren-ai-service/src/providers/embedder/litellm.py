@@ -81,7 +81,7 @@ class AsyncDocumentEmbedder:
     def __init__(
         self,
         model: str,
-        batch_size: int = 32,
+        batch_size: int = 5,
         api_key: Optional[str] = None,
         api_base_url: Optional[str] = None,
         timeout: Optional[float] = None,
@@ -97,8 +97,9 @@ class AsyncDocumentEmbedder:
     async def _embed_batch(
         self, texts_to_embed: List[str], batch_size: int
     ) -> Tuple[List[List[float]], Dict[str, Any]]:
-        # 限制底层的 API 并发请求数，防止大批量请求瞬间将大模型/Embedding 服务端的 NPU/GPU 撑爆
-        semaphore = asyncio.Semaphore(2)
+        # 限制底层的 API 并发请求数为严格串行(1)，防止 NPU/GPU 显存溢出
+        # NPU 总显存 60GB，大模型已占用 ~41GB，仅剩 ~6GB 可用于 Embedding
+        semaphore = asyncio.Semaphore(1)
 
         async def embed_single_batch(batch: List[str]) -> Any:
             async with semaphore:
