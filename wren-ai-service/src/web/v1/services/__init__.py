@@ -23,9 +23,11 @@ class MetadataTraceable:
         }
 
 
+import os
+
 class Configuration(BaseModel):
     class Timezone(BaseModel):
-        name: str = "UTC"
+        name: str = os.environ.get("TZ", "Asia/Shanghai")
         utc_offset: str = ""  # Deprecated, will be removed in the future
 
     def show_current_time(self):
