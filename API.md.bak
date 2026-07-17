@@ -211,6 +211,140 @@ These fields help you:
 * Inform the user which part of the query might need adjustment
 * Log failures for review or reporting
 
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/ask": {
+      "post": {
+        "summary": "Ask a question in natural language",
+        "description": "Converts your question to SQL, runs it, and provides insights about the data",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "description": "The natural language question to convert to SQL"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID to maintain conversation context"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Optional language override for AI responses. If not provided, will use the project's default language. Affects error messages and explanation responses. The format is not strictly enforced, but it is recommended to follow the language list in RFC 5646 (check https://gist.github.com/msikma/8912e62ed866778ff8cd for reference)."
+                  },
+                  "sampleSize": {
+                    "type": "integer",
+                    "description": "Number of rows from SQL results to include in AI context for summary generation",
+                    "default": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated SQL and summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The unique identifier for the response"
+                    },
+                    "sql": {
+                      "type": "string",
+                      "description": "The generated SQL statement"
+                    },
+                    "summary": {
+                      "type": "string",
+                      "description": "The generated summary of the data"
+                    },
+                    "threadId": {
+                      "type": "string",
+                      "description": "ID of the thread (existing or newly created)"
+                    },
+                    "type": {
+                      "type": "string",
+                      "description": "Type of response (SQL_QUERY or NON_SQL_QUERY)"
+                    },
+                    "explanation": {
+                      "type": "string",
+                      "description": "Explanation for non-SQL queries"
+                    }
+                  },
+                  "example": {
+                    "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+                    "sql": "SELECT customer_state, COUNT(*) as customer_count FROM customers GROUP BY customer_state ORDER BY customer_count DESC LIMIT 10",
+                    "summary": "The data shows that São Paulo (SP) has the highest number of customers with 15,847 customers, followed by Rio de Janeiro (RJ) with 12,832 customers. The top 5 states account for over 60% of all customers in the dataset.",
+                    "threadId": "9c537507-9cec-46ed-b877-07bfa6322bed"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or unable to process question",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 # generate_sql
 
 Converts a natural language question into a SQL query
@@ -306,6 +440,146 @@ If your question can't be converted to SQL, you'll receive an error response wit
 
 Use the `explanationQueryId` with the `/stream_explanation` endpoint to receive a detailed explanation response streamed as events.
 
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/generate_sql": {
+      "post": {
+        "summary": "Generate SQL from natural language",
+        "description": "Converts a natural language question into a SQL query",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "description": "The natural language question to convert to SQL"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID to maintain conversation context"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Optional language override for AI responses. If not provided, will use the project's default language. Affects error messages and explanation responses. The format is not strictly enforced, but it is recommended to follow the language list in RFC 5646 (check https://gist.github.com/msikma/8912e62ed866778ff8cd for reference)."
+                  },
+                  "returnSqlDialect": {
+                    "type": "boolean",
+                    "description": "Whether to return the SQL dialect in the response. If true, the SQL returned will be in the dialect of the database.",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated SQL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The unique identifier for the response"
+                    },
+                    "sql": {
+                      "type": "string",
+                      "description": "The generated SQL statement"
+                    },
+                    "threadId": {
+                      "type": "string",
+                      "description": "ID of the thread (existing or newly created)"
+                    }
+                  },
+                  "example": {
+                    "id": "1fbc0d64-1c58-45b2-a990-9183bbbcf913",
+                    "sql": "SELECT * FROM \"olist_customers_dataset\"",
+                    "threadId": "9c537507-9cec-46ed-b877-07bfa6322bed"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or unable to generate SQL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/ErrorResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "explanationQueryId": {
+                          "type": "string",
+                          "description": "ID that can be used with the /stream_explanation endpoint to get a detailed explanation for non-SQL queries"
+                        }
+                      }
+                    }
+                  ],
+                  "example": {
+                    "id": "75c13d09-6f86-4e79-a00e-a4f85f73f2d7",
+                    "code": "NON_SQL_QUERY",
+                    "error": "User asks about Wren AI's features and capabilities, unrelated to database schema.",
+                    "explanationQueryId": "71b016c5-42bb-4897-82d6-46f9b0bf7d94"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 # run_sql
 
 Runs a SQL query and returns the results as structured data
@@ -391,6 +665,203 @@ Error codes may include:
 2. Pass the generated SQL to `/run_sql` to execute and get results
 3. Optionally use the same `threadId` in follow-up queries to maintain context
 
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/run_sql": {
+      "post": {
+        "summary": "Execute SQL and return results",
+        "description": "Runs a SQL query and returns the results as structured data",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "sql"
+                ],
+                "properties": {
+                  "sql": {
+                    "type": "string",
+                    "description": "The SQL query to execute"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID for conversation context"
+                  },
+                  "limit": {
+                    "type": "integer",
+                    "description": "Maximum number of rows to return",
+                    "default": 1000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully executed SQL",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "records": {
+                      "type": "array",
+                      "description": "Array of records, each represented as an object",
+                      "items": {
+                        "type": "object"
+                      }
+                    },
+                    "columns": {
+                      "type": "array",
+                      "description": "Metadata about the result columns",
+                      "items": {
+                        "$ref": "#/components/schemas/ColumnMetadata"
+                      }
+                    },
+                    "threadId": {
+                      "type": "string",
+                      "description": "ID of the thread (existing or newly created)"
+                    },
+                    "totalRows": {
+                      "type": "integer",
+                      "description": "The total number of rows returned"
+                    }
+                  },
+                  "example": {
+                    "id": "09d46224-0068-4ca3-bce4-f1fc85093eb6",
+                    "records": [
+                      {
+                        "customer_id": "00012a2ce6f8dcda20d059ce98491703",
+                        "customer_unique_id": "248ffe10d632bebe4f7267f1f44844c9",
+                        "customer_zip_code_prefix": "06273",
+                        "customer_city": "osasco",
+                        "customer_state": "SP"
+                      },
+                      {
+                        "customer_id": "000161a058600d5901f007fab4c27140",
+                        "customer_unique_id": "b0015e09bb4b6e47c52844fab5fb6638",
+                        "customer_zip_code_prefix": "35550",
+                        "customer_city": "itapecerica",
+                        "customer_state": "MG"
+                      },
+                      "... additional records truncated for brevity ..."
+                    ],
+                    "columns": [
+                      {
+                        "name": "customer_id",
+                        "type": "VARCHAR"
+                      },
+                      {
+                        "name": "customer_unique_id",
+                        "type": "VARCHAR"
+                      },
+                      {
+                        "name": "customer_zip_code_prefix",
+                        "type": "VARCHAR"
+                      },
+                      {
+                        "name": "customer_city",
+                        "type": "VARCHAR"
+                      },
+                      {
+                        "name": "customer_state",
+                        "type": "VARCHAR"
+                      }
+                    ],
+                    "threadId": "503a8ca5-8171-43b5-b45b-86de2849467b",
+                    "totalRows": 10
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or SQL execution error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          },
+          "405": {
+            "description": "Method not allowed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      },
+      "ColumnMetadata": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Column name"
+          },
+          "type": {
+            "type": "string",
+            "description": "Data type of the column"
+          },
+          "notNull": {
+            "type": "boolean",
+            "description": "Whether the column allows null values"
+          },
+          "properties": {
+            "type": "object",
+            "description": "Additional column properties"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 # generate_summary
 
 Generates a natural language summary from a SQL query and a question
@@ -442,6 +913,133 @@ Common Error Codes
 * `POLLING_TIMEOUT` – Timed out while waiting for AI response.
 * `INVALID_SQL_ERROR` – The generated SQL could not be executed (e.g. due to a schema mismatch).
 * `INTERNAL_SERVER_ERROR` – An unknown error occurred on the server.
+
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/generate_summary": {
+      "post": {
+        "summary": "Generate summary from a SQL query and a question",
+        "description": "Generates a natural language summary from a SQL query and a question",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question",
+                  "sql"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "description": "The original question"
+                  },
+                  "sql": {
+                    "type": "string",
+                    "description": "The SQL query that was executed"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID for conversation context"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Optional language override for AI responses"
+                  },
+                  "sampleSize": {
+                    "type": "integer",
+                    "description": "Number of rows from SQL results to include in AI context for summary generation",
+                    "default": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "description": "The unique identifier for the response"
+                    },
+                    "summary": {
+                      "type": "string",
+                      "description": "The generated summary"
+                    },
+                    "threadId": {
+                      "type": "string",
+                      "description": "ID of the thread (existing or newly created)"
+                    }
+                  },
+                  "example": {
+                    "id": "b2c3d4e5-f6g7-8901-bcde-f23456789012",
+                    "sql": "SELECT customer_state, COUNT(*) as customer_count FROM customers GROUP BY customer_state ORDER BY customer_count DESC LIMIT 10",
+                    "summary": "Based on the SQL results, the analysis reveals significant regional distribution patterns. São Paulo leads with 15,847 customers, representing 23.4% of the total customer base. Rio de Janeiro follows with 12,832 customers (18.9%), while Minas Gerais has 8,945 customers (13.2%). This concentration in the Southeast region suggests strong market presence in Brazil's most populous areas.",
+                    "threadId": "9c537507-9cec-46ed-b877-07bfa6322bed"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or unable to generate summary",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 # stream_explanation
 
@@ -502,6 +1100,61 @@ Common errors include:
 * Server processing issues
 
 Always implement error handling to gracefully manage connection issues or invalid requests.
+
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/stream_explanation": {
+      "get": {
+        "summary": "Stream an explanation",
+        "description": "Streams an explanation for a non-SQL query using server-sent events",
+        "parameters": [
+          {
+            "name": "queryId",
+            "in": "query",
+            "description": "The query ID to stream results from",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Stream of explanation events",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Server-sent events stream with explanation chunks"
+                },
+                "example": "data: {\"message\":\"Wren AI is \"}\n\ndata: {\"message\":\"designed to \"}\n\ndata: {\"message\":\"help you analyze \"}\n\ndata: {\"message\":\"your data with \"}\n\ndata: {\"message\":\"natural language queries. I can \"}\n\ndata: {\"message\":\"provide insights about \"}\n\ndata: {\"message\":\"your business data and \"}\n\ndata: {\"message\":\"create visualizations.\"}\n\ndata: {\"done\":true}\n"
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 # Chart generation
 
@@ -868,6 +1521,188 @@ If chart generation fails, you'll receive an error response:
 ## Supported Chart Types
 
 Check [Wren AI / Generate Chart](https://docs.getwren.ai/oss/guide/home/chart#supported-chart-types) for reference.
+
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/generate_vega_chart": {
+      "post": {
+        "summary": "Generate Vega visualization chart spec",
+        "description": "Generates a Vega chart spec for data visualization from a question and SQL query",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question",
+                  "sql"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "description": "The natural language question"
+                  },
+                  "sql": {
+                    "type": "string",
+                    "description": "The SQL query that produces the data to visualize"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID for conversation context"
+                  },
+                  "sampleSize": {
+                    "type": "integer",
+                    "description": "Maximum number of rows to include in the visualization",
+                    "default": 10000
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successfully generated Vega specification",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "vegaSpec": {
+                      "type": "object",
+                      "description": "The Vega specification with embedded data"
+                    },
+                    "threadId": {
+                      "type": "string",
+                      "description": "ID of the thread (existing or newly created)"
+                    }
+                  },
+                  "example": {
+                    "threadId": "75ab23c8-9124-4560-a125-fbe7e321dcba",
+                    "vegaSpec": {
+                      "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+                      "config": {
+                        "mark": {
+                          "tooltip": true
+                        },
+                        "font": "Roboto, Arial, Noto Sans, sans-serif",
+                        "padding": {
+                          "top": 30,
+                          "bottom": 20,
+                          "left": 0,
+                          "right": 0
+                        },
+                        "title": {
+                          "color": "#262626",
+                          "fontSize": 14
+                        },
+                        "axis": {
+                          "labelFontSize": 10,
+                          "gridColor": "#d9d9d9",
+                          "titleColor": "#434343",
+                          "labelColor": "#65676c"
+                        },
+                        "axisX": {
+                          "labelAngle": -45
+                        },
+                        "bar": {
+                          "color": "#1570EF"
+                        }
+                      },
+                      "title": "Total Payments by Customer State",
+                      "data": {
+                        "values": [
+                          {
+                            "customer_state": "PR",
+                            "total_payment_value": 811156.38
+                          },
+                          {
+                            "customer_state": "BA",
+                            "total_payment_value": 616645.82
+                          }
+                        ]
+                      },
+                      "mark": {
+                        "type": "bar"
+                      },
+                      "width": "container",
+                      "height": "container",
+                      "encoding": {
+                        "x": {
+                          "field": "customer_state",
+                          "type": "nominal",
+                          "title": "Customer State"
+                        },
+                        "y": {
+                          "field": "total_payment_value",
+                          "type": "quantitative",
+                          "title": "Total Payment Value"
+                        },
+                        "color": {
+                          "field": "customer_state",
+                          "type": "nominal",
+                          "title": "Customer State"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or specification generation error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      }
+    }
+  }
+}
+```
 
 # Streaming
 
@@ -1263,6 +2098,110 @@ data: {
 }
 ```
 
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/stream/ask": {
+      "post": {
+        "summary": "Stream the \"ask\" process with real-time updates",
+        "description": "Streams the \"ask\" process with real-time state updates and content generation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "description": "The natural language question to convert to SQL"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID to maintain conversation context"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Optional language override for AI responses"
+                  },
+                  "sampleSize": {
+                    "type": "integer",
+                    "description": "Maximum number of rows to include in the summary",
+                    "default": 500
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent events stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Real-time streaming events with state updates and content"
+                },
+                "example": "data: {\"type\":\"message_start\",\"timestamp\":1751014954139}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_start\",\"question\":\"list 5 customers\",\"threadId\":\"0625991d-1bba-407d-8ad4-dd0210172484\",\"language\":\"English\"},\"timestamp\":1751014954142}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_understanding\",\"pollCount\":1,\"rephrasedQuestion\":null,\"intentReasoning\":null,\"sqlGenerationReasoning\":null,\"retrievedTables\":null,\"invalidSql\":null,\"traceId\":\"f218b1f7-4623-4a56-8b66-18d544797b20\"},\"timestamp\":1751014954165}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_searching\",\"pollCount\":4,\"rephrasedQuestion\":\"List 5 customers from the olist_customers_dataset table.\",\"intentReasoning\":\"User wants to retrieve specific customer data, likely using SQL query.\",\"sqlGenerationReasoning\":null,\"retrievedTables\":null,\"invalidSql\":null,\"traceId\":\"f218b1f7-4623-4a56-8b66-18d544797b20\"},\"timestamp\":1751014957183}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_planning\",\"pollCount\":6,\"rephrasedQuestion\":\"List 5 customers from the olist_customers_dataset table.\",\"intentReasoning\":\"User wants to retrieve specific customer data, likely using SQL query.\",\"sqlGenerationReasoning\":null,\"retrievedTables\":[\"olist_customers_dataset\"],\"invalidSql\":null,\"traceId\":\"f218b1f7-4623-4a56-8b66-18d544797b20\"},\"timestamp\":1751014959232}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_generating\",\"pollCount\":9,\"rephrasedQuestion\":\"List 5 customers from the olist_customers_dataset table.\",\"intentReasoning\":\"User wants to retrieve specific customer data, likely using SQL query.\",\"sqlGenerationReasoning\":\"1. **Identify the table involved**: The question asks for customer data, so the relevant table is `olist_customers_dataset`.\\n\\n2. **Determine the number of records needed**: The user requests 5 customers, so we need to select 5 entries from the table.\",\"retrievedTables\":[\"olist_customers_dataset\"],\"invalidSql\":null,\"traceId\":\"f218b1f7-4623-4a56-8b66-18d544797b20\"},\"timestamp\":1751014962254}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_success\",\"sql\":\"SELECT \\\"o\\\".\\\"customer_id\\\", \\\"o\\\".\\\"customer_zip_code_prefix\\\", \\\"o\\\".\\\"customer_city\\\", \\\"o\\\".\\\"customer_state\\\" FROM \\\"olist_customers_dataset\\\" AS \\\"o\\\" LIMIT 5\"},\"timestamp\":1751014963263}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_execution_start\",\"sql\":\"SELECT \\\"o\\\".\\\"customer_id\\\", \\\"o\\\".\\\"customer_zip_code_prefix\\\", \\\"o\\\".\\\"customer_city\\\", \\\"o\\\".\\\"customer_state\\\" FROM \\\"olist_customers_dataset\\\" AS \\\"o\\\" LIMIT 5\"},\"timestamp\":1751014963263}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_execution_end\"},\"timestamp\":1751014963339}\n\ndata: {\"type\":\"content_block_start\",\"content_block\":{\"type\":\"text\",\"name\":\"summary_generation\"},\"timestamp\":1751014963366}\n\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\"Here\"},\"timestamp\":1751014963764}\n\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\" are\"},\"timestamp\":1751014963764}\n\ndata: {\"type\":\"content_block_delta\",\"delta\":{\"type\":\"text_delta\",\"text\":\" the first 5 customers from the dataset.\"},\"timestamp\":1751014963777}\n\ndata: {\"type\":\"content_block_stop\",\"timestamp\":1751014965230}\n\ndata: {\"type\":\"message_stop\",\"data\":{\"threadId\":\"0625991d-1bba-407d-8ad4-dd0210172484\",\"duration\":11096},\"timestamp\":1751014965235}\n"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or streaming error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
 # stream/generate_sql
 
 Streams the SQL generation process with real-time state updates
@@ -1600,3 +2539,103 @@ This allows clients to gracefully detect and handle errors (e.g., show error mes
   "timestamp": 1751015028888
 }
 ```
+
+# OpenAPI definition
+
+```json
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "WrenAI API",
+    "description": "Restful API for interacting with Wren AI",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "/api/v1",
+      "description": "WrenAI API v1"
+    }
+  ],
+  "paths": {
+    "/stream/generate_sql": {
+      "post": {
+        "summary": "Stream SQL generation with real-time updates",
+        "description": "Streams the SQL generation process with real-time state updates",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "question"
+                ],
+                "properties": {
+                  "question": {
+                    "type": "string",
+                    "description": "The natural language question to convert to SQL"
+                  },
+                  "threadId": {
+                    "type": "string",
+                    "description": "Optional thread ID to maintain conversation context"
+                  },
+                  "language": {
+                    "type": "string",
+                    "description": "Optional language override for AI responses"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Server-sent events stream",
+            "content": {
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Real-time streaming events with SQL generation state updates"
+                },
+                "example": "data: {\"type\":\"message_start\",\"timestamp\":1751015017304}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_start\",\"question\":\"list 5 customers\",\"threadId\":\"a0820d1b-5926-4ef0-bcc4-b4237c0cff50\",\"language\":\"English\"},\"timestamp\":1751015017306}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_understanding\",\"pollCount\":1,\"rephrasedQuestion\":null,\"intentReasoning\":null,\"sqlGenerationReasoning\":null,\"retrievedTables\":null,\"invalidSql\":null,\"traceId\":\"5bcb1451-0b2e-46ce-9ff4-3bcd6f3007e1\"},\"timestamp\":1751015017315}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_searching\",\"pollCount\":4,\"rephrasedQuestion\":\"List 5 customers from the olist_customers_dataset table.\",\"intentReasoning\":\"User wants a specific SQL query to retrieve customer data.\",\"sqlGenerationReasoning\":null,\"retrievedTables\":null,\"invalidSql\":null,\"traceId\":\"5bcb1451-0b2e-46ce-9ff4-3bcd6f3007e1\"},\"timestamp\":1751015020340}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_planning\",\"pollCount\":6,\"rephrasedQuestion\":\"List 5 customers from the olist_customers_dataset table.\",\"intentReasoning\":\"User wants a specific SQL query to retrieve customer data.\",\"sqlGenerationReasoning\":null,\"retrievedTables\":[\"olist_customers_dataset\"],\"invalidSql\":null,\"traceId\":\"5bcb1451-0b2e-46ce-9ff4-3bcd6f3007e1\"},\"timestamp\":1751015022366}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_generating\",\"pollCount\":7,\"rephrasedQuestion\":\"List 5 customers from the olist_customers_dataset table.\",\"intentReasoning\":\"User wants a specific SQL query to retrieve customer data.\",\"sqlGenerationReasoning\":\"1. **Identify the table to query**: The table to retrieve customer data from is `olist_customers_dataset`.\\n\\n2. **Determine the number of records needed**: The user requests 5 customers, so we need to limit the result to 5 entries.\",\"retrievedTables\":[\"olist_customers_dataset\"],\"invalidSql\":null,\"traceId\":\"5bcb1451-0b2e-46ce-9ff4-3bcd6f3007e1\"},\"timestamp\":1751015025913}\n\ndata: {\"type\":\"state\",\"data\":{\"state\":\"sql_generation_success\",\"sql\":\"SELECT \\\"customer_id\\\", \\\"customer_unique_id\\\", \\\"customer_zip_code_prefix\\\", \\\"customer_city\\\", \\\"customer_state\\\" FROM \\\"olist_customers_dataset\\\" LIMIT 5\"},\"timestamp\":1751015027926}\n\ndata: {\"type\":\"message_stop\",\"data\":{\"threadId\":\"a0820d1b-5926-4ef0-bcc4-b4237c0cff50\",\"duration\":10624},\"timestamp\":1751015027928}\n"
+              }
+            }
+          },
+          "400": {
+            "description": "Bad request or streaming error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Unique identifier for the error response"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "code": {
+            "type": "string",
+            "description": "Error code"
+          }
+        }
+      }
+    }
+  }
+}
+```
+
