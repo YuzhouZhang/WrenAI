@@ -11,11 +11,23 @@ const redirectRoute = {
   [OnboardingStatus.WITH_SAMPLE_DATASET]: Path.Modeling,
 };
 
+let onboardingFinished = false;
+
 export const useWithOnboarding = () => {
   const router = useRouter();
   const { data, loading } = useOnboardingStatusQuery();
 
   const onboardingStatus = data?.onboardingStatus?.status;
+
+  const isFinished =
+    onboardingFinished ||
+    (typeof window !== 'undefined' &&
+      (onboardingStatus === OnboardingStatus.ONBOARDING_FINISHED ||
+        onboardingStatus === OnboardingStatus.WITH_SAMPLE_DATASET));
+
+  if (isFinished && typeof window !== 'undefined') {
+    onboardingFinished = true;
+  }
 
   useEffect(() => {
     if (onboardingStatus) {
@@ -71,7 +83,7 @@ export const useWithOnboarding = () => {
   }, [onboardingStatus, router.pathname]);
 
   return {
-    loading,
+    loading: isFinished ? false : loading,
     onboardingStatus,
   };
 };

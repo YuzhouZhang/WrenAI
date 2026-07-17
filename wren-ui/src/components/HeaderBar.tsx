@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { Button, Layout, Space } from 'antd';
 import styled from 'styled-components';
@@ -36,6 +37,15 @@ export default function HeaderBar() {
   const { pathname } = router;
   const showNav = !pathname.startsWith(Path.Onboarding);
   const isModeling = pathname.startsWith(Path.Modeling);
+
+  useEffect(() => {
+    if (showNav) {
+      router.prefetch(Path.Home);
+      router.prefetch(Path.Modeling);
+      router.prefetch(Path.KnowledgeQuestionSQLPairs);
+      router.prefetch(Path.APIManagementHistory);
+    }
+  }, [router, showNav]);
 
   return (
     <StyledHeader>
