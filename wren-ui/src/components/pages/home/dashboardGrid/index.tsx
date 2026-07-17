@@ -193,7 +193,11 @@ const DashboardGrid = forwardRef(
     useEffect(() => {
       const renderColumnSize = () => {
         if (!$container.current) return;
-        const sidebarWidth = 280;
+        const sidebarWidth = parseInt(
+          document.documentElement.style.getPropertyValue('--sidebar-width') ||
+            '280px',
+          10,
+        );
         const padding = 16 * 2;
         const containerWidth = window.innerWidth - sidebarWidth - padding;
 

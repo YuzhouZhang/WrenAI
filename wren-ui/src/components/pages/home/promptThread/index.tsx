@@ -22,7 +22,8 @@ export interface RecommendedQuestionsProps {
 
 const StyledPromptThread = styled.div`
   width: 100%;
-  max-width: 1000px;
+  padding-left: 48px;
+  padding-right: 48px;
   margin-left: auto;
   margin-right: auto;
 

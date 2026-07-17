@@ -41,9 +41,8 @@ interface Attributes {
 
 const PromptStyle = styled.div`
   position: fixed;
-  width: calc(100% - 280px - 48px);
-  max-width: 920px;
-  left: calc(50% + 140px);
+  width: calc(100% - var(--sidebar-width, 280px) - 96px);
+  left: calc(50% + calc(var(--sidebar-width, 280px) / 2));
   transform: translateX(-50%);
   bottom: 18px;
   z-index: 999;
