@@ -380,7 +380,7 @@ export default function Modeling() {
   return (
     <DeployStatusContext.Provider value={{ ...deployStatusQueryResult }}>
       <SiderLayout
-        loading={diagramData === null}
+        loading={false}
         sidebar={{
           data: diagramData,
           onOpenModelDrawer: modelDrawer.openDrawer,
