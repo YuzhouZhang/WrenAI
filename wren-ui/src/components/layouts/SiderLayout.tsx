@@ -44,18 +44,23 @@ type Props = React.ComponentProps<typeof SimpleLayout> & {
   color?: string;
 };
 
+const DEFAULT_SIDEBAR_WIDTH = 280;
+
+function getInitialSidebarWidth(): number {
+  if (typeof window === 'undefined') return DEFAULT_SIDEBAR_WIDTH;
+  try {
+    const saved = localStorage.getItem('sidebarWidth');
+    return saved ? parseInt(saved, 10) : DEFAULT_SIDEBAR_WIDTH;
+  } catch {
+    return DEFAULT_SIDEBAR_WIDTH;
+  }
+}
+
 export default function SiderLayout(props: Props) {
   const { sidebar, loading, color } = props;
   const settings = useModalAction();
-  const [sidebarWidth, setSidebarWidth] = useState(280);
+  const [sidebarWidth, setSidebarWidth] = useState(getInitialSidebarWidth);
   const isDragging = useRef(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('sidebarWidth');
-    const width = saved ? parseInt(saved, 10) : 280;
-    setSidebarWidth(width);
-    document.documentElement.style.setProperty('--sidebar-width', `${width}px`);
-  }, []);
 
   const startResize = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -95,7 +100,7 @@ export default function SiderLayout(props: Props) {
 
   return (
     <SimpleLayout loading={loading}>
-      <Layout className="adm-layout">
+      <Layout className="adm-layout" hasSider>
         <StyledSider width={sidebarWidth} trigger={null} collapsible>
           <Sidebar {...sidebar} onOpenSettings={settings.openModal} />
         </StyledSider>
