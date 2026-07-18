@@ -16,7 +16,7 @@ function App({ Component, pageProps }: AppProps) {
   return (
     <>
       <Head>
-        <title>Wren AI</title>
+        <title>O域数据模型</title>
         <link rel="icon" href="/favicon.ico" />
       </Head>
       <GlobalConfigProvider>
