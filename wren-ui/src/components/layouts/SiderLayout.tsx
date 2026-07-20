@@ -17,12 +17,18 @@ const basicStyle = css`
 const StyledContentLayout = styled(Layout)<{ color?: string }>`
   position: relative;
   ${basicStyle}
+  flex: 1 1 auto;
+  min-width: 0;
   ${(props) => props.color && `background-color: var(--${props.color});`}
 `;
 
 const StyledSider = styled(Sider)`
   ${basicStyle}
   transition: none !important; /* disable default transition during drag resizing */
+  width: var(--sidebar-width, 280px) !important;
+  min-width: var(--sidebar-width, 280px) !important;
+  max-width: var(--sidebar-width, 280px) !important;
+  flex: 0 0 var(--sidebar-width, 280px) !important;
 `;
 
 const StyledResizer = styled.div`
@@ -46,20 +52,10 @@ type Props = React.ComponentProps<typeof SimpleLayout> & {
 
 const DEFAULT_SIDEBAR_WIDTH = 280;
 
-function getInitialSidebarWidth(): number {
-  if (typeof window === 'undefined') return DEFAULT_SIDEBAR_WIDTH;
-  try {
-    const saved = localStorage.getItem('sidebarWidth');
-    return saved ? parseInt(saved, 10) : DEFAULT_SIDEBAR_WIDTH;
-  } catch {
-    return DEFAULT_SIDEBAR_WIDTH;
-  }
-}
-
 export default function SiderLayout(props: Props) {
   const { sidebar, loading, color } = props;
   const settings = useModalAction();
-  const [sidebarWidth, setSidebarWidth] = useState(getInitialSidebarWidth);
+  const [sidebarWidth, setSidebarWidth] = useState(DEFAULT_SIDEBAR_WIDTH);
   const isDragging = useRef(false);
 
   const startResize = (e: React.MouseEvent) => {
@@ -70,6 +66,17 @@ export default function SiderLayout(props: Props) {
   };
 
   useEffect(() => {
+    // Initialize sidebar width from localStorage on client side mount
+    const saved = localStorage.getItem('sidebarWidth');
+    if (saved) {
+      const parsed = parseInt(saved, 10);
+      setSidebarWidth(parsed);
+      document.documentElement.style.setProperty(
+        '--sidebar-width',
+        `${parsed}px`,
+      );
+    }
+
     const handleMouseMove = (e: MouseEvent) => {
       if (!isDragging.current) return;
       const newWidth = Math.max(200, Math.min(600, e.clientX));

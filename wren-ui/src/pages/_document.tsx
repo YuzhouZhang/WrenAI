@@ -34,6 +34,20 @@ export default class AppDocument extends Document {
       <Html>
         <Head>{this.props.styles}</Head>
         <body>
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                (function() {
+                  try {
+                    var saved = localStorage.getItem('sidebarWidth');
+                    if (saved) {
+                      document.documentElement.style.setProperty('--sidebar-width', saved + 'px');
+                    }
+                  } catch (e) {}
+                })();
+              `,
+            }}
+          />
           <Main />
           <NextScript />
         </body>

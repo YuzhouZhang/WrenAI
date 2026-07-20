@@ -6,7 +6,9 @@ import {
   useImperativeHandle,
   useMemo,
   useState,
+  useRef,
 } from 'react';
+import styled from 'styled-components';
 import ReactFlow, {
   MiniMap,
   Background,
@@ -42,6 +44,13 @@ const minimapStyle = {
   height: 120,
 };
 
+const StyledReactFlowContainer = styled.div<{ $initialized: boolean }>`
+  height: 100%;
+  width: 100%;
+  opacity: ${(props) => (props.$initialized ? 1 : 0)};
+  transition: opacity 0.3s ease-in-out;
+`;
+
 interface Props {
   forwardRef?: ForwardedRef<unknown>;
   data: DiagramData;
@@ -55,6 +64,8 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
   ref,
 ) {
   const { data, onMoreClick, onNodeClick, onAddClick } = props;
+  const isFirstFit = useRef(true);
+  const [initialized, setInitialized] = useState(false);
   const [forceRender, setForceRender] = useState(false);
   const reactFlowInstance = useReactFlow();
   useImperativeHandle(ref, () => reactFlowInstance, [reactFlowInstance]);
@@ -67,7 +78,15 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
     setNodes(diagram.nodes);
     setEdges(diagram.edges);
 
-    nextTick(50).then(() => reactFlowInstance.fitView());
+    nextTick(50).then(() => {
+      if (isFirstFit.current) {
+        reactFlowInstance.fitView({ duration: 0 });
+        isFirstFit.current = false;
+        setInitialized(true);
+      } else {
+        reactFlowInstance.fitView({ duration: 300 });
+      }
+    });
   }, [diagram]);
 
   const [nodes, setNodes, onNodesChange] = useNodesState(diagram.nodes);
@@ -100,11 +119,18 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
   const onRestore = async () => {
     setNodes(diagram.nodes);
     setEdges(diagram.edges);
+    reactFlowInstance.fitView({ duration: 300 });
   };
 
   const onInit = async () => {
     await nextTick();
-    reactFlowInstance.fitView();
+    if (isFirstFit.current) {
+      reactFlowInstance.fitView({ duration: 0 });
+      isFirstFit.current = false;
+      setInitialized(true);
+    } else {
+      reactFlowInstance.fitView({ duration: 300 });
+    }
     await nextTick(100);
     setForceRender(!forceRender);
   };
@@ -135,28 +161,30 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
   return (
     <>
       <DiagramContext.Provider value={{ onMoreClick, onNodeClick, onAddClick }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onEdgeMouseEnter={onEdgeMouseEnter}
-          onEdgeMouseLeave={onEdgeMouseLeave}
-          onInit={onInit}
-          nodeTypes={nodeTypes}
-          edgeTypes={edgeTypes}
-          maxZoom={1}
-          onPointerDown={(event) => dispatchMouseEvent(event)}
-          proOptions={{ hideAttribution: true }}
-        >
-          <MiniMap style={minimapStyle} zoomable pannable />
-          <Controls showInteractive={false}>
-            <ControlButton onClick={onRestore}>
-              <RefreshIcon style={{ maxWidth: 24, maxHeight: 24 }} />
-            </ControlButton>
-          </Controls>
-          <Background gap={16} />
-        </ReactFlow>
+        <StyledReactFlowContainer $initialized={initialized}>
+          <ReactFlow
+            nodes={nodes}
+            edges={edges}
+            onNodesChange={onNodesChange}
+            onEdgesChange={onEdgesChange}
+            onEdgeMouseEnter={onEdgeMouseEnter}
+            onEdgeMouseLeave={onEdgeMouseLeave}
+            onInit={onInit}
+            nodeTypes={nodeTypes}
+            edgeTypes={edgeTypes}
+            maxZoom={1}
+            onPointerDown={(event) => dispatchMouseEvent(event)}
+            proOptions={{ hideAttribution: true }}
+          >
+            <MiniMap style={minimapStyle} zoomable pannable />
+            <Controls showInteractive={false}>
+              <ControlButton onClick={onRestore}>
+                <RefreshIcon style={{ maxWidth: 24, maxHeight: 24 }} />
+              </ControlButton>
+            </Controls>
+            <Background gap={16} />
+          </ReactFlow>
+        </StyledReactFlowContainer>
       </DiagramContext.Provider>
 
       <Marker />
