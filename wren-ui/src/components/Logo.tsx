@@ -14,35 +14,195 @@ export const Logo = (props: Props) => {
       shapeRendering="geometricPrecision"
     >
       <defs>
-        <linearGradient id="icon-grad" x1="0" y1="12" x2="52" y2="52" gradientUnits="userSpaceOnUse">
+        <linearGradient
+          id="icon-grad"
+          x1="0"
+          y1="12"
+          x2="52"
+          y2="52"
+          gradientUnits="userSpaceOnUse"
+        >
           <stop offset="0%" stopColor="#00f2fe" />
           <stop offset="100%" stopColor="#4facfe" />
         </linearGradient>
       </defs>
 
       <g transform="translate(-9.6, -9.6) scale(1.3)">
-        <circle cx="32" cy="32" r="22" stroke="url(#icon-grad)" strokeWidth="3" strokeDasharray="138" strokeDashoffset="15" opacity="0.9"/>
-        <line x1="32" y1="10" x2="48" y2="22" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="48" y1="22" x2="42" y2="46" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="42" y1="46" x2="20" y2="42" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="20" y1="42" x2="16" y2="20" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-        <line x1="16" y1="20" x2="32" y2="10" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-        
-        <line x1="32" y1="10" x2="42" y2="46" stroke={color} strokeDasharray="2 2" strokeWidth="1" opacity="0.7" />
-        <line x1="16" y1="20" x2="42" y2="46" stroke={color} stroke-dasharray="2 2" stroke-width="1" opacity="0.7" />
-        <line x1="20" y1="42" x2="48" y2="22" stroke={color} stroke-dasharray="2 2" stroke-width="1" opacity="0.7" />
-        <line x1="32" y1="32" x2="32" y2="10" stroke={color} strokeWidth="1.5" />
-        <line x1="32" y1="32" x2="48" y2="22" stroke={color} strokeWidth="1.5" />
-        <line x1="32" y1="32" x2="42" y2="46" stroke={color} strokeWidth="1.5" />
-        <line x1="32" y1="32" x2="20" y2="42" stroke={color} strokeWidth="1.5" />
-        <line x1="32" y1="32" x2="16" y2="20" stroke={color} strokeWidth="1.5" />
+        <circle
+          cx="32"
+          cy="32"
+          r="22"
+          stroke="url(#icon-grad)"
+          strokeWidth="3"
+          strokeDasharray="138"
+          strokeDashoffset="15"
+          opacity="0.9"
+        />
+        <line
+          x1="32"
+          y1="10"
+          x2="48"
+          y2="22"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <line
+          x1="48"
+          y1="22"
+          x2="42"
+          y2="46"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <line
+          x1="42"
+          y1="46"
+          x2="20"
+          y2="42"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <line
+          x1="20"
+          y1="42"
+          x2="16"
+          y2="20"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
+        <line
+          x1="16"
+          y1="20"
+          x2="32"
+          y2="10"
+          stroke={color}
+          strokeWidth="1.5"
+          strokeLinecap="round"
+        />
 
-        <circle cx="32" cy="10" r="3.5" fill="#00f2fe" stroke={color} strokeWidth="1" />
-        <circle cx="48" cy="22" r="3.5" fill="#4facfe" stroke={color} stroke-width="1" />
-        <circle cx="42" cy="46" r="3.5" fill="#00f2fe" stroke={color} stroke-width="1" />
-        <circle cx="20" cy="42" r="3.5" fill="#4facfe" stroke={color} stroke-width="1" />
-        <circle cx="16" cy="20" r="3.5" fill="#00f2fe" stroke={color} stroke-width="1" />
-        <circle cx="32" cy="32" r="5" fill="#ffffff" stroke="url(#icon-grad)" strokeWidth="1.5" />
+        <line
+          x1="32"
+          y1="10"
+          x2="42"
+          y2="46"
+          stroke={color}
+          strokeDasharray="2 2"
+          strokeWidth="1"
+          opacity="0.7"
+        />
+        <line
+          x1="16"
+          y1="20"
+          x2="42"
+          y2="46"
+          stroke={color}
+          stroke-dasharray="2 2"
+          stroke-width="1"
+          opacity="0.7"
+        />
+        <line
+          x1="20"
+          y1="42"
+          x2="48"
+          y2="22"
+          stroke={color}
+          stroke-dasharray="2 2"
+          stroke-width="1"
+          opacity="0.7"
+        />
+        <line
+          x1="32"
+          y1="32"
+          x2="32"
+          y2="10"
+          stroke={color}
+          strokeWidth="1.5"
+        />
+        <line
+          x1="32"
+          y1="32"
+          x2="48"
+          y2="22"
+          stroke={color}
+          strokeWidth="1.5"
+        />
+        <line
+          x1="32"
+          y1="32"
+          x2="42"
+          y2="46"
+          stroke={color}
+          strokeWidth="1.5"
+        />
+        <line
+          x1="32"
+          y1="32"
+          x2="20"
+          y2="42"
+          stroke={color}
+          strokeWidth="1.5"
+        />
+        <line
+          x1="32"
+          y1="32"
+          x2="16"
+          y2="20"
+          stroke={color}
+          strokeWidth="1.5"
+        />
+
+        <circle
+          cx="32"
+          cy="10"
+          r="3.5"
+          fill="#00f2fe"
+          stroke={color}
+          strokeWidth="1"
+        />
+        <circle
+          cx="48"
+          cy="22"
+          r="3.5"
+          fill="#4facfe"
+          stroke={color}
+          stroke-width="1"
+        />
+        <circle
+          cx="42"
+          cy="46"
+          r="3.5"
+          fill="#00f2fe"
+          stroke={color}
+          stroke-width="1"
+        />
+        <circle
+          cx="20"
+          cy="42"
+          r="3.5"
+          fill="#4facfe"
+          stroke={color}
+          stroke-width="1"
+        />
+        <circle
+          cx="16"
+          cy="20"
+          r="3.5"
+          fill="#00f2fe"
+          stroke={color}
+          stroke-width="1"
+        />
+        <circle
+          cx="32"
+          cy="32"
+          r="5"
+          fill="#ffffff"
+          stroke="url(#icon-grad)"
+          strokeWidth="1.5"
+        />
       </g>
     </svg>
   );
