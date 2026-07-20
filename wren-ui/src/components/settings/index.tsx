@@ -21,6 +21,7 @@ type Props = ModalAction<any, any> & {
 };
 
 const StyledSider = styled(Sider)`
+  background: var(--gray-1);
   .ant-layout-sider-children {
     display: flex;
     flex-direction: column;
@@ -124,7 +125,11 @@ export default function Settings(props: Props) {
       centered
     >
       <Layout style={{ height: '100%' }}>
-        <StyledSider width={310} className="border-r border-gray-4">
+        <StyledSider
+          width={310}
+          className="border-r border-gray-4"
+          theme="light"
+        >
           <div className="gray-9 text-bold py-3 px-5">
             <SettingOutlined className="mr-2" />
             Settings

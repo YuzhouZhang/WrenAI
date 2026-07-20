@@ -100,8 +100,8 @@ export const Logo = (props: Props) => {
           x2="42"
           y2="46"
           stroke={color}
-          stroke-dasharray="2 2"
-          stroke-width="1"
+          strokeDasharray="2 2"
+          strokeWidth="1"
           opacity="0.7"
         />
         <line
@@ -110,8 +110,8 @@ export const Logo = (props: Props) => {
           x2="48"
           y2="22"
           stroke={color}
-          stroke-dasharray="2 2"
-          stroke-width="1"
+          strokeDasharray="2 2"
+          strokeWidth="1"
           opacity="0.7"
         />
         <line
@@ -169,7 +169,7 @@ export const Logo = (props: Props) => {
           r="3.5"
           fill="#4facfe"
           stroke={color}
-          stroke-width="1"
+          strokeWidth="1"
         />
         <circle
           cx="42"
@@ -177,7 +177,7 @@ export const Logo = (props: Props) => {
           r="3.5"
           fill="#00f2fe"
           stroke={color}
-          stroke-width="1"
+          strokeWidth="1"
         />
         <circle
           cx="20"
@@ -185,7 +185,7 @@ export const Logo = (props: Props) => {
           r="3.5"
           fill="#4facfe"
           stroke={color}
-          stroke-width="1"
+          strokeWidth="1"
         />
         <circle
           cx="16"
@@ -193,7 +193,7 @@ export const Logo = (props: Props) => {
           r="3.5"
           fill="#00f2fe"
           stroke={color}
-          stroke-width="1"
+          strokeWidth="1"
         />
         <circle
           cx="32"

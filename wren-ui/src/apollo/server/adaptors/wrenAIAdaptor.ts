@@ -771,8 +771,9 @@ export class WrenAIAdaptor implements IWrenAIAdaptor {
 
   private async waitDeployFinished(deployId: string): Promise<boolean> {
     let deploySuccess = false;
-    // timeout after 30 seconds
-    for (let waitTime = 1; waitTime <= 7; waitTime++) {
+    // timeout after 120 seconds (60 retries * 2 seconds)
+    const maxRetries = 60;
+    for (let i = 0; i < maxRetries; i++) {
       try {
         const status = await this.getDeployStatus(deployId);
         logger.debug(`Wren AI: Deploy status: ${status}`);
@@ -790,7 +791,7 @@ export class WrenAIAdaptor implements IWrenAIAdaptor {
       } catch (err: any) {
         throw err;
       }
-      await new Promise((resolve) => setTimeout(resolve, waitTime * 1000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
     }
     return deploySuccess;
   }

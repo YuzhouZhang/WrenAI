@@ -27,9 +27,12 @@ const StyledButton = styled(Button)<{ $isHighlight: boolean }>`
 
 const StyledHeader = styled(Header)`
   height: 48px;
+  line-height: normal;
   border-bottom: 1px solid var(--gray-5);
   background: var(--gray-10);
-  padding: 10px 16px;
+  padding: 0 16px;
+  display: flex;
+  align-items: center;
 `;
 
 export default function HeaderBar() {
@@ -51,7 +54,7 @@ export default function HeaderBar() {
     <StyledHeader>
       <div
         className="d-flex justify-space-between align-center"
-        style={{ marginTop: -2 }}
+        style={{ width: '100%', marginTop: -2 }}
       >
         <Space size={[48, 0]}>
           <LogoBar />
