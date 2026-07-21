@@ -1,9 +1,7 @@
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
 import {
-  Alert,
   Button,
   Divider,
   Empty,
@@ -19,7 +17,7 @@ import { BinocularsIcon } from '@/utils/icons';
 import { nextTick } from '@/utils/time';
 import useNativeSQL from '@/hooks/useNativeSQL';
 import { DATA_SOURCE_OPTIONS } from '@/components/pages/setup/utils';
-import { Logo } from '@/components/Logo';
+import { getDataSourceImage } from '@/utils/dataSourceType';
 import { Props as AnswerResultProps } from '@/components/pages/home/promptThread/AnswerResult';
 import usePromptThreadStore from '@/components/pages/home/promptThread/store';
 import PreviewData from '@/components/dataPreview/PreviewData';
@@ -148,7 +146,14 @@ export default function ViewSQLTabContent(props: AnswerResultProps) {
         {showNativeSQL && dataSourceType ? (
           <StyledBar className="d-flex align-items-center justify-content-between">
             <Space size={8}>
-              <Logo logo={dataSourceType} size={16} />
+              {getDataSourceImage(dataSourceType) && (
+                <img
+                  src={getDataSourceImage(dataSourceType)}
+                  alt={dataSourceType}
+                  width={16}
+                  height={16}
+                />
+              )}
               <Text className="gray-7 font-weight-semibold">
                 {DATA_SOURCE_OPTIONS[dataSourceType]?.label || dataSourceType}
               </Text>

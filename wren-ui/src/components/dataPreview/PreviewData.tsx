@@ -29,27 +29,29 @@ const StyledCell = styled.div`
   }
 `;
 
-const ColumnTitle = memo((props: { name: string; type: any; alias?: string }) => {
-  const { name, type, alias } = props;
-  const columnTypeIcon = getColumnTypeIcon({ type }, { title: type });
-  const showAlias = Boolean(alias && alias !== name);
+const ColumnTitle = memo(
+  (props: { name: string; type: any; alias?: string }) => {
+    const { name, type, alias } = props;
+    const columnTypeIcon = getColumnTypeIcon({ type }, { title: type });
+    const showAlias = Boolean(alias && alias !== name);
 
-  return (
-    <div className="d-flex flex-column">
-      <div className="d-flex align-items-center">
-        {columnTypeIcon}
-        <Text title={name} className="ml-1 text-truncate">
-          {name}
-        </Text>
+    return (
+      <div className="d-flex flex-column">
+        <div className="d-flex align-items-center">
+          {columnTypeIcon}
+          <Text title={name} className="ml-1 text-truncate">
+            {name}
+          </Text>
+        </div>
+        {showAlias && (
+          <Text title={alias} className="gray-6 font-size-xs text-truncate">
+            {alias}
+          </Text>
+        )}
       </div>
-      {showAlias && (
-        <Text title={alias} className="gray-6 font-size-xs text-truncate">
-          {alias}
-        </Text>
-      )}
-    </div>
-  );
-});
+    );
+  },
+);
 
 const ColumnContext = memo((props: { text: string; copyable: boolean }) => {
   const { text, copyable } = props;
