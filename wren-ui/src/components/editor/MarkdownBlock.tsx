@@ -1,6 +1,61 @@
+import { useEffect, useState, useId } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import mermaid from 'mermaid';
+
+mermaid.initialize({
+  startOnLoad: false,
+  theme: 'default',
+  securityLevel: 'loose',
+});
+
+function MermaidBlock({ code }: { code: string }) {
+  const [svg, setSvg] = useState<string>('');
+  const [error, setError] = useState<boolean>(false);
+  const reactId = useId();
+  const uniqueId = `mermaid-${reactId.replace(/:/g, '')}`;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const renderDiagram = async () => {
+      try {
+        const { svg } = await mermaid.render(uniqueId, code);
+        if (isMounted) {
+          setSvg(svg);
+          setError(false);
+        }
+      } catch (err) {
+        console.error('Mermaid 渲染失败:', err);
+        if (isMounted) setError(true);
+        const errorNode = document.getElementById(uniqueId);
+        if (errorNode) errorNode.remove();
+      }
+    };
+
+    renderDiagram();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [code, uniqueId]);
+
+  if (error || !svg) {
+    return (
+      <pre>
+        <code className="language-mermaid">{code}</code>
+      </pre>
+    );
+  }
+
+  return (
+    <div
+      className="mermaid-container my-4 flex justify-center overflow-x-auto bg-white p-4 rounded border border-gray-200"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
+  );
+}
 
 const ReactMarkdownBlock = styled(ReactMarkdown)`
   h1,
@@ -72,7 +127,26 @@ const ReactMarkdownBlock = styled(ReactMarkdown)`
 
 export default function MarkdownBlock(props: { content: string }) {
   return (
-    <ReactMarkdownBlock remarkPlugins={[remarkGfm]}>
+    <ReactMarkdownBlock
+      remarkPlugins={[remarkGfm]}
+      components={{
+        code(props) {
+          const { children, className, node, ...rest } = props;
+          const match = /language-(\w+)/.exec(className || '');
+          const isMermaid = match && match[1] === 'mermaid';
+
+          if (isMermaid) {
+            return <MermaidBlock code={String(children).replace(/\n$/, '')} />;
+          }
+
+          return (
+            <code className={className} {...rest}>
+              {children}
+            </code>
+          );
+        },
+      }}
+    >
       {props.content}
     </ReactMarkdownBlock>
   );
