@@ -1,23 +1,15 @@
 import dynamic from 'next/dynamic';
+import Image from 'next/image';
 import { useEffect, useMemo } from 'react';
 import styled from 'styled-components';
-import {
-  Button,
-  Divider,
-  Empty,
-  message,
-  Space,
-  Switch,
-  Typography,
-} from 'antd';
+import { Button, Divider, Empty, Space, Switch, Typography } from 'antd';
+import CheckOutlined from '@ant-design/icons/CheckOutlined';
+import CloseOutlined from '@ant-design/icons/CloseOutlined';
 import CodeFilled from '@ant-design/icons/CodeFilled';
-import EditOutlined from '@ant-design/icons/EditOutlined';
-import CopyOutlined from '@ant-design/icons/CopyOutlined';
 import { BinocularsIcon } from '@/utils/icons';
 import { nextTick } from '@/utils/time';
 import useNativeSQL from '@/hooks/useNativeSQL';
 import { DATA_SOURCE_OPTIONS } from '@/components/pages/setup/utils';
-import { getDataSourceImage } from '@/utils/dataSourceType';
 import { Props as AnswerResultProps } from '@/components/pages/home/promptThread/AnswerResult';
 import usePromptThreadStore from '@/components/pages/home/promptThread/store';
 import PreviewData from '@/components/dataPreview/PreviewData';
@@ -30,7 +22,14 @@ const SQLCodeBlock = dynamic(() => import('@/components/code/SQLCodeBlock'), {
 
 const { Text } = Typography;
 
-const StyledBar = styled.div`
+const StyledPre = styled.pre`
+  .adm_code-block {
+    border-top: none;
+    border-radius: 0px 0px 4px 4px;
+  }
+`;
+
+const StyledToolBar = styled.div`
   background-color: var(--gray-2);
   height: 32px;
   padding: 4px 8px;
@@ -82,130 +81,111 @@ export default function ViewSQLTabContent(props: AnswerResultProps) {
   const { hasNativeSQL, dataSourceType } = nativeSQLResult || {};
   const showNativeSQL = hasNativeSQL;
 
-  const currentSQL =
+  const sqls =
     nativeSQLResult?.nativeSQLMode && nativeSQLResult?.loading === false
       ? nativeSQLResult.data
       : sql;
 
-  const isSwitchLoading = nativeSQLResult?.loading;
-
-  const setShowNativeSQL = async (checked: boolean) => {
+  const onChangeNativeSQL = async (checked: boolean) => {
     nativeSQLResult?.setNativeSQLMode(checked);
     checked && fetchNativeSQL({ variables: { responseId: id } });
   };
 
-  const onAdjustSQL = () => {
-    onOpenAdjustSQLModal({ responseId: id, sql });
-  };
-
-  const onCopySQL = () => {
-    if (currentSQL) {
-      navigator.clipboard.writeText(currentSQL);
-      message.success('SQL copied to clipboard');
-    }
-  };
-
   return (
-    <div>
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <Space size={8}>
-          <Button
-            size="small"
-            className="gray-7"
-            onClick={onAdjustSQL}
-            data-ph-capture="true"
-            data-ph-capture-attribute-name="view_sql_adjust_sql"
-          >
-            <EditOutlined className="gray-6" /> Edit SQL
-          </Button>
-
-          <Button
-            size="small"
-            className="gray-7"
-            icon={<CopyOutlined className="gray-6" />}
-            onClick={onCopySQL}
-            data-ph-capture="true"
-            data-ph-capture-attribute-name="view_sql_copy_sql"
-          >
-            Copy SQL
-          </Button>
-        </Space>
-
-        <div className="d-flex align-items-center gap-2">
-          <Text className="gray-6 text-sm">Compile View</Text>
-          <Switch
-            size="small"
-            checked={showNativeSQL}
-            onChange={setShowNativeSQL}
-            loading={isSwitchLoading}
-          />
-        </div>
-      </div>
-
-      <div className="mb-4">
-        {showNativeSQL && dataSourceType ? (
-          <StyledBar className="d-flex align-items-center justify-content-between">
-            <Space size={8}>
-              {getDataSourceImage(dataSourceType) && (
-                <img
-                  src={getDataSourceImage(dataSourceType)}
-                  alt={dataSourceType}
-                  width={16}
-                  height={16}
+    <div className="text-md gray-10 p-6 pb-4">
+      <StyledPre className="p-0 mb-3">
+        <StyledToolBar className="d-flex justify-space-between text-family-base">
+          <div>
+            {nativeSQLResult?.nativeSQLMode && dataSourceType && DATA_SOURCE_OPTIONS[dataSourceType] && (
+              <>
+                <Image
+                  className="mr-2"
+                  src={DATA_SOURCE_OPTIONS[dataSourceType].logo}
+                  alt={DATA_SOURCE_OPTIONS[dataSourceType].label}
+                  width="22"
+                  height="22"
                 />
-              )}
-              <Text className="gray-7 font-weight-semibold">
-                {DATA_SOURCE_OPTIONS[dataSourceType]?.label || dataSourceType}
-              </Text>
-            </Space>
-
-            <Space size={4}>
-              <CodeFilled className="gray-6" />
-              <Text className="gray-6 text-xs">Compiled View SQL</Text>
-            </Space>
-          </StyledBar>
-        ) : null}
-
-        <SQLCodeBlock code={currentSQL} />
-      </div>
-
-      <Divider />
-      <Button
-        icon={
-          <BinocularsIcon
-            style={{
-              paddingBottom: 2,
-              marginRight: 8,
-            }}
-          />
-        }
-        loading={previewDataResult.loading}
-        onClick={onPreviewData}
-        data-ph-capture="true"
-        data-ph-capture-attribute-name="view_sql_preview_data"
-      >
-        View results
-      </Button>
-      {previewDataResult?.data?.previewData && (
-        <div className="mt-2 mb-3">
-          <PreviewData
-            error={previewDataResult.error}
-            loading={previewDataResult.loading}
-            previewData={previewDataWithAlias}
-            locale={{
-              emptyText: (
-                <Empty
-                  image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description="Sorry, we couldn't find any records that match your search criteria."
-                />
-              ),
-            }}
-          />
-          <div className="text-right">
-            <Text className="text-base gray-6">Showing up to 500 rows</Text>
+                <Text className="gray-8 text-medium text-sm">
+                  {DATA_SOURCE_OPTIONS[dataSourceType].label}
+                </Text>
+              </>
+            )}
           </div>
-        </div>
-      )}
+          <Space split={<Divider type="vertical" className="m-0" />}>
+            {showNativeSQL && (
+              <label className="d-flex align-center cursor-pointer">
+                <Switch
+                  checkedChildren={<CheckOutlined />}
+                  unCheckedChildren={<CloseOutlined />}
+                  className="mr-2"
+                  size="small"
+                  onChange={onChangeNativeSQL}
+                  loading={nativeSQLResult?.loading}
+                />
+                <Text className="gray-8 text-medium text-base">
+                  Show original SQL
+                </Text>
+              </label>
+            )}
+            <Button
+              type="link"
+              data-ph-capture="true"
+              data-ph-capture-attribute-name="view_sql_copy_sql"
+              icon={<CodeFilled />}
+              size="small"
+              onClick={() => onOpenAdjustSQLModal({ sql, responseId: id })}
+            >
+              Adjust SQL
+            </Button>
+          </Space>
+        </StyledToolBar>
+        <SQLCodeBlock
+          code={sqls}
+          showLineNumbers
+          maxHeight="300"
+          loading={nativeSQLResult?.loading}
+          copyable
+        />
+      </StyledPre>
+      <div className="mt-6">
+        <Button
+          size="small"
+          icon={
+            <BinocularsIcon
+              style={{
+                paddingBottom: 2,
+                marginRight: 8,
+              }}
+            />
+          }
+          loading={previewDataResult.loading}
+          onClick={onPreviewData}
+          data-ph-capture="true"
+          data-ph-capture-attribute-name="view_sql_preview_data"
+        >
+          View results
+        </Button>
+        {previewDataResult?.data?.previewData && (
+          <div className="mt-2 mb-3">
+            <PreviewData
+              error={previewDataResult.error}
+              loading={previewDataResult.loading}
+              previewData={previewDataWithAlias}
+              locale={{
+                emptyText: (
+                  <Empty
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                    description="Sorry, we couldn't find any records that match your search criteria."
+                  />
+                ),
+              }}
+            />
+            <div className="text-right">
+              <Text className="text-base gray-6">Showing up to 500 rows</Text>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
