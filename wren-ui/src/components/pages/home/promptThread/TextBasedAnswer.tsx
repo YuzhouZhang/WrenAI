@@ -17,6 +17,7 @@ import PreviewData from '@/components/dataPreview/PreviewData';
 import { AdjustAnswerDropdown } from '@/components/diagram/CustomDropdown';
 import { usePreviewDataMutation } from '@/apollo/client/graphql/home.generated';
 import { ThreadResponseAnswerStatus } from '@/apollo/client/graphql/__types__';
+import { useColumnAliasMap } from '@/hooks/useColumnAliasMap';
 
 const { Text } = Typography;
 
@@ -117,6 +118,18 @@ export default function TextBasedAnswer(props: AnswerResultProps) {
     onError: (error) => console.error(error),
   });
   const hasPreviewData = !!previewDataResult.data?.previewData;
+
+  const columnAliasMap = useColumnAliasMap();
+
+  const previewDataWithAlias = useMemo(() => {
+    const rawPreviewData = previewDataResult?.data?.previewData;
+    if (!rawPreviewData) return undefined;
+    const columns = (rawPreviewData.columns || []).map((col) => ({
+      ...col,
+      alias: columnAliasMap[col.name],
+    }));
+    return { ...rawPreviewData, columns };
+  }, [previewDataResult?.data?.previewData, columnAliasMap]);
 
   const onPreviewData = async () => {
     await previewData({ variables: { where: { responseId: id } } });
@@ -253,7 +266,7 @@ export default function TextBasedAnswer(props: AnswerResultProps) {
               <PreviewData
                 error={previewDataResult.error}
                 loading={previewDataResult.loading}
-                previewData={previewDataResult?.data?.previewData}
+                previewData={previewDataWithAlias}
               />
             </div>
           </div>

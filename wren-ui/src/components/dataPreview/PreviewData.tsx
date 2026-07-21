@@ -29,17 +29,25 @@ const StyledCell = styled.div`
   }
 `;
 
-const ColumnTitle = memo((props: { name: string; type: any }) => {
-  const { name, type } = props;
+const ColumnTitle = memo((props: { name: string; type: any; alias?: string }) => {
+  const { name, type, alias } = props;
   const columnTypeIcon = getColumnTypeIcon({ type }, { title: type });
+  const showAlias = Boolean(alias && alias !== name);
 
   return (
-    <>
-      {columnTypeIcon}
-      <Text title={name} className="ml-1">
-        {name}
-      </Text>
-    </>
+    <div className="d-flex flex-column">
+      <div className="d-flex align-items-center">
+        {columnTypeIcon}
+        <Text title={name} className="ml-1 text-truncate">
+          {name}
+        </Text>
+      </div>
+      {showAlias && (
+        <Text title={alias} className="gray-6 font-size-xs text-truncate">
+          {alias}
+        </Text>
+      )}
+    </div>
   );
 });
 
@@ -60,13 +68,13 @@ const ColumnContext = memo((props: { text: string; copyable: boolean }) => {
 });
 
 const getPreviewColumns = (cols, { copyable }) =>
-  cols.map(({ name, type }: Record<string, any>) => {
+  cols.map(({ name, type, alias }: Record<string, any>) => {
     return {
       dataIndex: name,
       titleText: name,
       key: name,
       ellipsis: true,
-      title: <ColumnTitle name={name} type={type} />,
+      title: <ColumnTitle name={name} type={type} alias={alias} />,
       render: (text) => <ColumnContext text={text} copyable={copyable} />,
       onCell: () => ({ style: { lineHeight: '24px' } }),
     };
@@ -78,6 +86,7 @@ interface Props {
     columns: Array<{
       name: string;
       type: string;
+      alias?: string;
     }>;
   };
   loading: boolean;
