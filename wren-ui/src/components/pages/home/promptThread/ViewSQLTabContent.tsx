@@ -96,20 +96,22 @@ export default function ViewSQLTabContent(props: AnswerResultProps) {
       <StyledPre className="p-0 mb-3">
         <StyledToolBar className="d-flex justify-space-between text-family-base">
           <div>
-            {nativeSQLResult?.nativeSQLMode && dataSourceType && DATA_SOURCE_OPTIONS[dataSourceType] && (
-              <>
-                <Image
-                  className="mr-2"
-                  src={DATA_SOURCE_OPTIONS[dataSourceType].logo}
-                  alt={DATA_SOURCE_OPTIONS[dataSourceType].label}
-                  width="22"
-                  height="22"
-                />
-                <Text className="gray-8 text-medium text-sm">
-                  {DATA_SOURCE_OPTIONS[dataSourceType].label}
-                </Text>
-              </>
-            )}
+            {nativeSQLResult?.nativeSQLMode &&
+              dataSourceType &&
+              DATA_SOURCE_OPTIONS[dataSourceType] && (
+                <>
+                  <Image
+                    className="mr-2"
+                    src={DATA_SOURCE_OPTIONS[dataSourceType].logo}
+                    alt={DATA_SOURCE_OPTIONS[dataSourceType].label}
+                    width="22"
+                    height="22"
+                  />
+                  <Text className="gray-8 text-medium text-sm">
+                    {DATA_SOURCE_OPTIONS[dataSourceType].label}
+                  </Text>
+                </>
+              )}
           </div>
           <Space split={<Divider type="vertical" className="m-0" />}>
             {showNativeSQL && (
