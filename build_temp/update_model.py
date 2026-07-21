@@ -1,6 +1,7 @@
 """
-批量修改模型 ID=66 (API_PMC_CORE_BIG_P_KPI_15MIN) 的显示名和描述
+批量修改模型 ID=81 (核心网 VoLTE/IMS 呼叫信令接口数据样例表) 的显示名和描述
 使用精确的字段映射数据，通过 wren-ui GraphQL API 更新
+将字段显示名修改为与描述一致
 """
 
 import requests
@@ -9,48 +10,154 @@ import sys
 
 # ========== 配置 ==========
 GRAPHQL_URL = "http://wren-ui:3000/api/graphql"
-MODEL_ID = 76
-MODEL_NEW_DISPLAY_NAME = "政企业务支撑平台_亚运会专线数据统计"
-MODEL_NEW_DESCRIPTION = (
-    "亚运会专线数据统计表。分地市记录了亚运会期间专线业务的客户数、业务数、故障数及万专线故障比，用于评估专线业务的稳定性与服务质量。\n\n"
-    "【重要规则】此表为每日地市维度的存量快照表。每条记录代表该地市当天的总存量数值，而非每日增量。当用户查询“专线客户数”、“业务数”等存量指标且未指定具体日期时，严禁直接跨天 SUM 累加。必须默认过滤为最新一天（最大日期）的数据（若查询全省总量，则应在最新一天日期下对各地市进行 SUM 求和）。"
-)
+MODEL_ID = 81
+MODEL_NEW_DISPLAY_NAME = "核心网 VoLTE/IMS 呼叫信令接口数据样例表"
+MODEL_NEW_DESCRIPTION = ""
 # ==========================
 
 # ===== 精确字段映射 (英文引用名 -> 中文显示名, 描述) =====
 # 键为小写引用名（与 WrenAI 中存储的一致）
 FIELD_MAP = {
-    "date_time": (
-        "日期",
-        "日期。注意：\n"
-        "1. 数据库实际存储格式为 yyyyMMdd（不带横杠，如 20231030）。如果用户提问中包含横杠格式的日期（如 2023-10-30），必须自动转换为 yyyyMMdd 格式。\n"
-        "2. 当查询客户数、业务数等存量指标未明确指定日期时，必须默认过滤最新一日。\n"
-        "   - SQL 过滤示例：WHERE date_time = (SELECT MAX(date_time) FROM ...)"
-    ),
-    "company_num": (
-        "客户数",
-        "统计的客户数量。此指标为地市维度的日快照存量值。当询问专线客户数且未指定日期时，严禁直接进行跨天 SUM 累加。必须先过滤出最新一天（最大日期），在此基础上再对各地市求和（若涉及多地市或全省）。\n"
-        "   - SQL 过滤示例（单地市最新）：WHERE region_name = '杭州市' AND date_time = (SELECT MAX(date_time) FROM ...)\n"
-        "   - SQL 过滤示例（全省最新）：SELECT SUM(company_num) FROM ... WHERE date_time = (SELECT MAX(date_time) FROM ...)"
-    ),
-    "deline_num": (
-        "业务数",
-        "统计的业务数量。此指标为地市维度的日快照存量值。当询问业务数且未指定日期时，严禁直接进行跨天 SUM 累加。必须先过滤出最新一天（最大日期），在此基础上再对各地市求和（若涉及多地市或全省）。\n"
-        "   - SQL 过滤示例（单地市最新）：WHERE region_name = '杭州市' AND date_time = (SELECT MAX(date_time) FROM ...)\n"
-        "   - SQL 过滤示例（全省最新）：SELECT SUM(deline_num) FROM ... WHERE date_time = (SELECT MAX(date_time) FROM ...)"
-    ),
-    "fault_num": ("故障数", "统计的故障数量"),
-    "qob": ("万专线故障比", "每万专线的故障比例"),
-    "region_name": (
-        "地市名称",
-        "地市名称。表示该统计数据所属的城市。\n\n"
-        "该字段的候选值（Distinct 值）仅包含以下 11 个浙江地市：\n"
-        "- 杭州市, 宁波市, 温州市, 嘉兴市, 湖州市, 绍兴市, 金华市, 衢州市, 舟山市, 台州市, 丽水市\n\n"
-        "SQL 过滤生成规则提示：\n"
-        "1. 字段中的地市名称均带有“市”后缀。如果用户查询“杭州”、“温州”等不带“市”的名称，必须自动补齐“市”后缀进行匹配。\n"
-        "   - 问：“杭州的专线故障数” -> WHERE region_name = '杭州市'\n"
-        "   - 问：“温州和宁波的业务数” -> WHERE region_name IN ('温州市', '宁波市')"
-    ),
+    "protocol_id": ('protocol_id', ''),
+    "video_codec_name": ('视频编解码', '视频编解码'),
+    "service_type_name": ('业务类型', '业务类型'),
+    "called_audio_sdp_port_name": ('被叫语音SDP端口号', '被叫语音SDP端口号'),
+    "call_duration_name": ('通话时长(s)', '通话时长(s)'),
+    "update_early_media_200_ok_delay_name": ('彩铃流程的Update 200 OK时延(ms)', '彩铃流程的Update 200 OK时延(ms)'),
+    "callflow_type": ('CALLFLOW_type', 'CALLFLOW_type'),
+    "update_early_delay_name": ('彩铃流程的Update时延(ms)', '彩铃流程的Update时延(ms)'),
+    "calling_video_sdp_port_name": ('主叫视频SDP端口号', '主叫视频SDP端口号'),
+    "pd": ('pd', ''),
+    "probeid": ('probeid', ''),
+    "dial_number_name": ('拨打号码', '拨打号码'),
+    "redirecting_imsi_name": ('前转方IMSI', '前转方IMSI'),
+    "first_fail_ne_type_name": ('第一拆线网元类型', '第一拆线网元类型'),
+    "col_225020101_name": ('行政区层级2', '行政区层级2'),
+    "col_112272141830_name": ('CS Retry触发消息', 'CS Retry触发消息'),
+    "callflow": ('callflow', ''),
+    "conf_uri_name": ('会议URI', '会议URI'),
+    "col_225040101_name": ('行政区层级4', '行政区层级4'),
+    "call_hold_name": ('呼叫保持标识', '呼叫保持标识'),
+    "called_party_address_hash": ('CALLED_PARTY_ADDRESS', 'CALLED_PARTY_ADDRESS'),
+    "encrytimsi_imsi": ('ENCRYTIMSI_IMSI', 'ENCRYTIMSI_IMSI'),
+    "finish_warning_name": ('Warning Text', 'Warning Text'),
+    "srl_starttime": ('开始时间', '开始时间'),
+    "starttime_name": ('starttime_name', ''),
+    "play_tone_protocol_name": ('放音协议', '放音协议'),
+    "update_delay_name": ('Precondition流程的Update时延(ms)', 'Precondition流程的Update时延(ms)'),
+    "alerting_time_name": ('振铃时间(ms)', '振铃时间(ms)'),
+    "called_addr_identity_name": ('被叫用户标识', '被叫用户标识'),
+    "access_type_name": ('接入网类型', '接入网类型'),
+    "procedure_id": ('procedure_id', ''),
+    "service_status_name": ('业务状态', '业务状态'),
+    "answer_time_name": ('应答时间(ms)', '应答时间(ms)'),
+    "srl_starttime_name": ('开始时间', '开始时间'),
+    "srl_endtime_name": ('结束时间', '结束时间'),
+    "user_type_name": ('用户类型', '用户类型'),
+    "srl_interface": ('srl_interface', ''),
+    "alert_early_media_type_name": ('180消息P-Early-Media类型', '180消息P-Early-Media类型'),
+    "peer_access_info_name": ('对端接入位置信息', '对端接入位置信息'),
+    "sid": ('sid', ''),
+    "dest_ne_type_name": ('目的网元类型', '目的网元类型'),
+    "play_tone_name": ('183或Update消息P-Early-Media类型', '183或Update消息P-Early-Media类型'),
+    "firfailtime_name": ('第一拆线时间(ms)', '第一拆线时间(ms)'),
+    "calling_addr_identity_name": ('主叫用户标识', '主叫用户标识'),
+    "srl_term_untrust_ip_addr_name": ('终端IP', '终端IP'),
+    "redirection_address_hash": ('REDIRECTION_ADDRESS', 'REDIRECTION_ADDRESS'),
+    "sip_183_delay_name": ('183时延 (ms)', '183时延 (ms)'),
+    "imei_name": ('IMEI', 'IMEI'),
+    "srl_cw_falg_name": ('呼叫等待标识', '呼叫等待标识'),
+    "audio_codec_name": ('语音编解码', '语音编解码'),
+    "col_91444686986_name": ('SIP响应码', 'SIP响应码'),
+    "impi_tel_uri_hash": ('IMPI_TEL_URI', 'IMPI_TEL_URI'),
+    "calling_party_address_name": ('主叫号码', '主叫号码'),
+    "callflow_imsi": ('CALLFLOW_imsi', 'CALLFLOW_imsi'),
+    "callflow_msisdn": ('CALLFLOW_msisdn', 'CALLFLOW_msisdn'),
+    "callflow_iserrorcause": ('CALLFLOW_iserrorcause', 'CALLFLOW_iserrorcause'),
+    "callflow_pd": ('CALLFLOW_pd', 'CALLFLOW_pd'),
+    "callflow_interfaceid": ('CALLFLOW_interfaceid', 'CALLFLOW_interfaceid'),
+    "callflow_cause": ('CALLFLOW_cause', 'CALLFLOW_cause'),
+    "callflow_relmsgtype": ('CALLFLOW_relmsgtype', 'CALLFLOW_relmsgtype'),
+    "callflow_endtime": ('CALLFLOW_endtime', 'CALLFLOW_endtime'),
+    "callflow_sessionid": ('CALLFLOW_sessionid', 'CALLFLOW_sessionid'),
+    "callflow_protocolid": ('CALLFLOW_protocolid', 'CALLFLOW_protocolid'),
+    "callflow_procedureid": ('CALLFLOW_procedureid', 'CALLFLOW_procedureid'),
+    "callflow_probeid": ('CALLFLOW_probeid', 'CALLFLOW_probeid'),
+    "callflow_isrt": ('CALLFLOW_isRT', 'CALLFLOW_isRT'),
+    "callflow_cdrtype": ('CALLFLOW_cdrType', 'CALLFLOW_cdrType'),
+    "callflow_starttime": ('CALLFLOW_starttime', 'CALLFLOW_starttime'),
+    "callflow_refid": ('CALLFLOW_refid', 'CALLFLOW_refid'),
+    "srl_source_ne_ip_name": ('源网元IP', '源网元IP'),
+    "iwf_ability_flag_name": ('IWF SRVCC能力标志', 'IWF SRVCC能力标志'),
+    "col_202050101_name": ('接入位置名称', '接入位置名称'),
+    "impu_tel_uri_hash": ('IMPU_TEL_URI', 'IMPU_TEL_URI'),
+    "dial_number_hash": ('DIAL_NUMBER', 'DIAL_NUMBER'),
+    "conf_user_type_name": ('会议中的用户类型', '会议中的用户类型'),
+    "source_ne_type_name": ('源网元类型', '源网元类型'),
+    "original_party_address_name": ('原被叫地址', '原被叫地址'),
+    "ue_ability_flag_name": ('终端SRVCC能力标志', '终端SRVCC能力标志'),
+    "srl_called_audio_sdp_ip_addr_name": ('被叫语音SDP IP', '被叫语音SDP IP'),
+    "redirecting_imsi_hash": ('REDIRECTING_IMSI', 'REDIRECTING_IMSI'),
+    "redirect_reason_name": ('前转原因', '前转原因'),
+    "col_225030101_name": ('行政区层级3', '行政区层级3'),
+    "session_terminate_flag_name": ('会话中断标志', '会话中断标志'),
+    "col_103130101_name": ('第一拆线网元名称', '第一拆线网元名称'),
+    "access_info_name": ('接入位置信息', '接入位置信息'),
+    "refid": ('refid', ''),
+    "col_203050102_name": ('终端品牌', '终端品牌'),
+    "srl_failcause": ('srl_failcause', ''),
+    "iserrorcause": ('iserrorcause', ''),
+    "finish_reason_code_name": ('Reason Code', 'Reason Code'),
+    "srl_first_fail_ne_ip_name": ('第一拆线网元IP', '第一拆线网元IP'),
+    "visit_domain_name": ('拜访网络域名', '拜访网络域名'),
+    "video_rbt_capacity_name": ('主叫终端视频彩铃能力标志', '主叫终端视频彩铃能力标志'),
+    "col_48705562008_name": ('目的网元名称', '目的网元名称'),
+    "area_code_name": ('区号', '区号'),
+    "called_addr_identity_hash": ('CALLED_ADDR_IDENTITY', 'CALLED_ADDR_IDENTITY'),
+    "cs_retry_delay_name": ('CS Retry触发时延(ms)', 'CS Retry触发时延(ms)'),
+    "col_225010101_name": ('行政区层级1', '行政区层级1'),
+    "srl_endtime_utc": ('srl_endtime_utc', ''),
+    "called_party_address_name": ('被叫号码', '被叫号码'),
+    "srl_dest_ne_ip_name": ('目的网元IP', '目的网元IP'),
+    "play_tone_cause_name": ('放音原因', '放音原因'),
+    "cdrtype": ('cdrtype', ''),
+    "original_party_address_hash": ('ORIGINAL_PARTY_ADDRESS', 'ORIGINAL_PARTY_ADDRESS'),
+    "update_200_ok_delay_name": ('Precondition流程的Update 200 OK时延(ms)', 'Precondition流程的Update 200 OK时延(ms)'),
+    "srl_retrans_msgtype_name": ('重传消息', '重传消息'),
+    "encrytmsisdn_msisdn": ('ENCRYTMSISDN_MSISDN', 'ENCRYTMSISDN_MSISDN'),
+    "redirection_address_name": ('前转目的方地址', '前转目的方地址'),
+    "finish_reason_protocol_name": ('Reason Protocol', 'Reason Protocol'),
+    "v_starttime": ('v_starttime', ''),
+    "called_video_port_name": ('被叫视频SDP端口号', '被叫视频SDP端口号'),
+    "device_type_name": ('VoLTE终端OS版本', 'VoLTE终端OS版本'),
+    "starttime": ('starttime', ''),
+    "calling_audio_sdp_port_name": ('主叫语音SDP端口号', '主叫语音SDP端口号'),
+    "srl_called_video_ip_addr_name": ('被叫视频SDP IP', '被叫视频SDP IP'),
+    "srl_endtime": ('结束时间', '结束时间'),
+    "release_time_name": ('释放时间(ms)', '释放时间(ms)'),
+    "finish_reason_name": ('Reason Text', 'Reason Text'),
+    "redirect_counter_name": ('前转次数', '前转次数'),
+    "impu_tel_uri_name": ('MSISDN', 'MSISDN'),
+    "calling_addr_identity_hash": ('CALLING_ADDR_IDENTITY', 'CALLING_ADDR_IDENTITY'),
+    "col_203050103_name": ('终端型号', '终端型号'),
+    "col_48696404520_name": ('源网元名称', '源网元名称'),
+    "peer_access_type_name": ('对端接入网类型', '对端接入网类型'),
+    "tai_name": ('跟踪区标识', '跟踪区标识'),
+    "col_2334010101_name": ('对端接入位置名称', '对端接入位置名称'),
+    "prack_200_ok_delay_name": ('PRACK 200 OK时延(ms)', 'PRACK 200 OK时延(ms)'),
+    "sv_name": ('IMEI软件版本号', 'IMEI软件版本号'),
+    "imei_hash": ('IMEI', 'IMEI'),
+    "update_early_media_200_ok_result_name": ('彩铃媒体协商结果', '彩铃媒体协商结果'),
+    "prack_delay_name": ('PRACK时延(ms)', 'PRACK时延(ms)'),
+    "calling_party_address_hash": ('CALLING_PARTY_ADDRESS', 'CALLING_PARTY_ADDRESS'),
+    "srl_term_untrust_ip_addr_hash": ('SRL_TERM_UNTRUST_IP_ADDR', 'SRL_TERM_UNTRUST_IP_ADDR'),
+    "srl_calling_audio_sdp_ip_addr_name": ('主叫语音SDP IP', '主叫语音SDP IP'),
+    "retransmsg_timeoffset_name": ('重传消息时间(ms)', '重传消息时间(ms)'),
+    "interface_name": ('接口类型', '接口类型'),
+    "impi_tel_uri_name": ('IMSI', 'IMSI'),
+    "call_side_name": ('呼叫侧类型', '呼叫侧类型'),
+    "first_fail_ne_id": ('first_fail_ne_id', ''),
+    "srl_calling_video_sdp_ip_addr_name": ('主叫视频SDP IP', '主叫视频SDP IP'),
 }
 
 
@@ -115,33 +222,39 @@ def preview_changes(model, fields):
     unmatched = 0
 
     print(f"\n  【字段变更】(共 {len(fields)} 个字段)")
-    print(f"  {'ID':<6} {'引用名':<30} {'当前显示名':<30} → {'新显示名':<30} {'新描述'}")
-    print(f"  {'─'*6} {'─'*30} {'─'*30}   {'─'*30} {'─'*30}")
+    print(f"  {'ID':<6} {'引用名':<35} {'当前显示名':<30} → {'新显示名':<30} {'新描述'}")
+    print(f"  {'─'*6} {'─'*35} {'─'*30}   {'─'*30} {'─'*30}")
 
     for f in fields:
         ref_name = f["referenceName"]
+        old_display = f["displayName"]
+        old_desc = ""
+        if f.get("properties") and isinstance(f["properties"], dict):
+            old_desc = f["properties"].get("description", "")
+
         if ref_name in FIELD_MAP:
             new_display, new_desc = FIELD_MAP[ref_name]
-            old_display = f["displayName"]
-            old_desc = ""
-            if f.get("properties") and isinstance(f["properties"], dict):
-                old_desc = f["properties"].get("description", "")
-
-            changed = (old_display != new_display) or (old_desc != new_desc)
-            marker = "🔄" if changed else "✅"
-            print(f"  {marker} {f['id']:<4} {ref_name:<28} {old_display:<28} → {new_display:<28} {new_desc}")
-
-            columns_update.append({
-                "id": f["id"],
-                "displayName": new_display,
-                "description": new_desc
-            })
+            matched += 1
+        elif old_desc and old_desc not in ("None", "nan"):
+            new_display = old_desc
+            new_desc = old_desc
             matched += 1
         else:
-            print(f"  ⚠️  {f['id']:<4} {ref_name:<28} {f['displayName']:<28} → (未在映射表中，跳过)")
+            new_display = old_display
+            new_desc = old_desc
             unmatched += 1
 
-    print(f"\n  📊 统计: 匹配 {matched} 个字段, 未匹配 {unmatched} 个字段")
+        changed = (old_display != new_display) or (old_desc != new_desc)
+        marker = "🔄" if changed else "✅"
+        print(f"  {marker} {f['id']:<4} {ref_name:<33} {old_display:<28} → {new_display:<28} {new_desc}")
+
+        columns_update.append({
+            "id": f["id"],
+            "displayName": new_display,
+            "description": new_desc
+        })
+
+    print(f"\n  📊 统计: 处理 {matched} 个带映射/描述字段, 保留 {unmatched} 个无描述字段")
     print(f"  📝 映射表共 {len(FIELD_MAP)} 条记录")
     return columns_update
 
