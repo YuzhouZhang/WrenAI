@@ -1600,3 +1600,98 @@ This allows clients to gracefully detect and handle errors (e.g., show error mes
   "timestamp": 1751015028888
 }
 ```
+
+# models
+
+Returns the latest deployed models in MDL (Model Definition Language) format for the current project
+
+The `/models` endpoint returns the data models deployed in your project, using Model Definition Language (MDL) format.
+
+MDL is a structured, declarative syntax for defining **data models, relationships, transformations, and business semantics**—bridging the gap between raw database schemas and actionable analytics logic.
+
+* It clearly defines entities, columns, relationships, calculated fields, and views.
+* Semantic context from MDL helps the AI generate accurate SQL and consistent analytics logic
+
+> 🔗 Learn more
+>
+> * <Anchor label="What is Modeling Definition Language?" target="_blank" href="https://docs.getwren.ai/oss/engine/concept/what_is_mdl">What is Modeling Definition Language?</Anchor>
+> * <Anchor label="Modeling Overview Guide" target="_blank" href="https://docs.getwren.ai/oss/engine/guide/modeling/overview">Modeling Overview Guide</Anchor>
+
+<br />
+
+## Example response
+
+```json Example
+{
+  "hash": "8fe319d45cd88196226f2d2c2ecd2ef739d2cfc7",
+  "models": [
+    {
+      "name": "olist_customers_dataset",
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "VARCHAR",
+          "isCalculated": false,
+          "notNull": false,
+          "properties": {
+            "description": "customer id.",
+            "displayName": "customer_id"
+          }
+        },
+        {
+          "name": "customer_state",
+          "type": "VARCHAR",
+          "isCalculated": false,
+          "notNull": false,
+          "properties": {
+            "description": "Name of the state where the customer is located",
+            "displayName": "customer_state"
+          }
+        }
+      ],
+      "tableReference": {
+        "catalog": "memory",
+        "schema": "main",
+        "table": "olist_customers_dataset"
+      },
+      "cached": false,
+      "properties": {
+        "displayName": "customers"
+      },
+      "primaryKey": "customer_id"
+    }
+  ],
+  "relationships": [
+    {
+      "name": "Olist_orders_datasetCustomer_idOlist_customers_datasetCustomer_id",
+      "models": [
+        "olist_orders_dataset",
+        "olist_customers_dataset"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "\"olist_orders_dataset\".customer_id = \"olist_customers_dataset\".customer_id",
+      "properties": {}
+    }
+  ],
+  "views": [
+    {
+      "name": "test_v",
+      "statement": "SELECT \"c\".\"customer_city\" AS \"city\", COUNT(\"o\".\"order_id\") AS \"order_count\" FROM \"olist_customers_dataset\" AS \"c\" JOIN \"olist_orders_dataset\" AS \"o\" ON \"c\".\"customer_id\" = \"o\".\"customer_id\" GROUP BY \"c\".\"customer_city\" ORDER BY \"order_count\" DESC LIMIT 3",
+      "properties": {
+        "displayName": "test_v",
+        "question": "Which are the top 3 cities with the highest number of orders",
+        "viewId": "5"
+      }
+    }
+  ]
+}
+```
+
+<br />
+
+## Field reference
+
+* Model: <https://docs.getwren.ai/oss/engine/guide/modeling/model>
+* Relationship: <https://docs.getwren.ai/oss/engine/guide/modeling/relation>
+* View: <https://docs.getwren.ai/oss/engine/guide/modeling/view>
+

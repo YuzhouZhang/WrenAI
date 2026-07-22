@@ -1616,3 +1616,97 @@ data: {
   "timestamp": 1751015028888
 }
 ```
+
+# models
+
+返回当前项目以 MDL (模型定义语言) 格式部署的最新模型
+
+`/models` 端点返回项目中部署的数据模型，采用模型定义语言 (Model Definition Language, MDL) 格式。
+
+MDL 是一种结构化的声明式语法，用于定义**数据模型、关系、转换和业务语义**——架起从原始数据库 Schema 到可操作分析逻辑之间的桥梁。
+
+* 它清晰地定义了实体、列、关系、计算字段和视图。
+* MDL 提供的语义上下文有助于 AI 生成准确的 SQL 和一致的分析逻辑。
+
+> 🔗 了解更多
+>
+> * <Anchor label="什么是模型定义语言 (MDL)？" target="_blank" href="https://docs.getwren.ai/oss/engine/concept/what_is_mdl">什么是模型定义语言 (MDL)？</Anchor>
+> * <Anchor label="建模概述指南" target="_blank" href="https://docs.getwren.ai/oss/engine/guide/modeling/overview">建模概述指南</Anchor>
+
+<br />
+
+## 响应示例 (Example response)
+
+```json Example
+{
+  "hash": "8fe319d45cd88196226f2d2c2ecd2ef739d2cfc7",
+  "models": [
+    {
+      "name": "olist_customers_dataset",
+      "columns": [
+        {
+          "name": "customer_id",
+          "type": "VARCHAR",
+          "isCalculated": false,
+          "notNull": false,
+          "properties": {
+            "description": "customer id.",
+            "displayName": "customer_id"
+          }
+        },
+        {
+          "name": "customer_state",
+          "type": "VARCHAR",
+          "isCalculated": false,
+          "notNull": false,
+          "properties": {
+            "description": "Name of the state where the customer is located",
+            "displayName": "customer_state"
+          }
+        }
+      ],
+      "tableReference": {
+        "catalog": "memory",
+        "schema": "main",
+        "table": "olist_customers_dataset"
+      },
+      "cached": false,
+      "properties": {
+        "displayName": "customers"
+      },
+      "primaryKey": "customer_id"
+    }
+  ],
+  "relationships": [
+    {
+      "name": "Olist_orders_datasetCustomer_idOlist_customers_datasetCustomer_id",
+      "models": [
+        "olist_orders_dataset",
+        "olist_customers_dataset"
+      ],
+      "joinType": "MANY_TO_ONE",
+      "condition": "\"olist_orders_dataset\".customer_id = \"olist_customers_dataset\".customer_id",
+      "properties": {}
+    }
+  ],
+  "views": [
+    {
+      "name": "test_v",
+      "statement": "SELECT \"c\".\"customer_city\" AS \"city\", COUNT(\"o\".\"order_id\") AS \"order_count\" FROM \"olist_customers_dataset\" AS \"c\" JOIN \"olist_orders_dataset\" AS \"o\" ON \"c\".\"customer_id\" = \"o\".\"customer_id\" GROUP BY \"c\".\"customer_city\" ORDER BY \"order_count\" DESC LIMIT 3",
+      "properties": {
+        "displayName": "test_v",
+        "question": "Which are the top 3 cities with the highest number of orders",
+        "viewId": "5"
+      }
+    }
+  ]
+}
+```
+
+<br />
+
+## 字段参考 (Field reference)
+
+* Model: <https://docs.getwren.ai/oss/engine/guide/modeling/model>
+* Relationship: <https://docs.getwren.ai/oss/engine/guide/modeling/relation>
+* View: <https://docs.getwren.ai/oss/engine/guide/modeling/view>

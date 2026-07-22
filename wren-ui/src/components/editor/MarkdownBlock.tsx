@@ -24,6 +24,8 @@ function MermaidBlock({ code }: { code: string }) {
   const lastValidSvg = useRef<string>('');
   // 记录上一次真正渲染的时间戳，用于 500ms 节流 (Throttle)
   const lastRenderTime = useRef<number>(0);
+  // 标记组件是否为首次挂载（用于区分加载历史消息与增量流式生成）
+  const isFirstMount = useRef<boolean>(true);
 
   // 动态递增省略号 '.' -> '..' -> '...' -> '.'
   useEffect(() => {
@@ -39,13 +41,15 @@ function MermaidBlock({ code }: { code: string }) {
     let timer: NodeJS.Timeout | null = null;
     let idleTimer: NodeJS.Timeout | null = null;
 
-    // 代码变动，标记为流式生成中
-    setIsGenerating(true);
+    // 只有在非首次挂载（即流式追加增量字符）时，才显示“图表生成中...”角标
+    if (!isFirstMount.current) {
+      setIsGenerating(true);
 
-    // 2500ms 无新字符传入时，认为 AI 已经生成完毕/停顿，隐藏生成角标（防止流式中途微停顿导致角标消失）
-    idleTimer = setTimeout(() => {
-      if (isMounted) setIsGenerating(false);
-    }, 2500);
+      // 2500ms 无新字符传入时，认为 AI 已经生成完毕/停顿，隐藏生成角标
+      idleTimer = setTimeout(() => {
+        if (isMounted) setIsGenerating(false);
+      }, 2500);
+    }
 
     const renderDiagram = async () => {
       lastRenderTime.current = Date.now();
@@ -78,18 +82,21 @@ function MermaidBlock({ code }: { code: string }) {
       }
     };
 
-    // 500ms 节流：计算距离上次渲染已过去多久
     const now = Date.now();
     const elapsed = now - lastRenderTime.current;
     const THROTTLE_INTERVAL = 500;
 
-    if (elapsed >= THROTTLE_INTERVAL) {
+    // 首次挂载直接无延迟渲染，后续流式更新则使用 500ms 节流
+    if (isFirstMount.current || elapsed >= THROTTLE_INTERVAL) {
       renderDiagram();
     } else {
       timer = setTimeout(() => {
         renderDiagram();
       }, THROTTLE_INTERVAL - elapsed);
     }
+
+    // 标记首次挂载已完成
+    isFirstMount.current = false;
 
     return () => {
       isMounted = false;
