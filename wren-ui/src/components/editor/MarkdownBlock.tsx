@@ -1,4 +1,4 @@
-import { useEffect, useState, useId } from 'react';
+import { useEffect, useState, useId, useRef } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -10,38 +10,95 @@ mermaid.initialize({
   securityLevel: 'loose',
 });
 
+const StyledMermaidContainer = styled.div`
+  position: relative;
+  svg {
+    animation: mermaidFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  @keyframes mermaidFadeIn {
+    from {
+      opacity: 0.7;
+      transform: scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+`;
+
 function MermaidBlock({ code }: { code: string }) {
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<boolean>(false);
-  const reactId = useId();
-  const uniqueId = `mermaid-${reactId.replace(/:/g, '')}`;
+  const [isGenerating, setIsGenerating] = useState<boolean>(false);
+
+  // 记录上一次成功渲染的 SVG，防止流式输出报错时闪烁回源码
+  const lastValidSvg = useRef<string>('');
+  // 记录上一次真正渲染的时间戳，用于 500ms 节流 (Throttle)
+  const lastRenderTime = useRef<number>(0);
 
   useEffect(() => {
     let isMounted = true;
+    let timer: NodeJS.Timeout | null = null;
+    let idleTimer: NodeJS.Timeout | null = null;
+
+    // 代码变动，标记为流式生成中
+    setIsGenerating(true);
+
+    // 2500ms 无新字符传入时，认为 AI 已经生成完毕/停顿，隐藏生成角标（防止流式中途微停顿导致角标消失）
+    idleTimer = setTimeout(() => {
+      if (isMounted) setIsGenerating(false);
+    }, 2500);
 
     const renderDiagram = async () => {
+      lastRenderTime.current = Date.now();
+      // 每次渲染生成随机唯一的 renderId，避免因为相同的 ID 覆盖导致 CSS 样式短暂失效闪白
+      const renderId = `mermaid-${Math.random().toString(36).substring(2, 9)}`;
       try {
-        const { svg } = await mermaid.render(uniqueId, code);
+        const { svg: renderedSvg } = await mermaid.render(renderId, code);
         if (isMounted) {
-          setSvg(svg);
+          setSvg(renderedSvg);
+          lastValidSvg.current = renderedSvg;
           setError(false);
         }
       } catch (err) {
-        console.error('Mermaid 渲染失败:', err);
-        if (isMounted) setError(true);
-        const errorNode = document.getElementById(uniqueId);
+        if (isMounted) {
+          if (!lastValidSvg.current) {
+            // 如果之前没有渲染成功过，则立刻报错回退至源码
+            setError(true);
+            console.error('Mermaid 渲染失败:', err);
+          } else {
+            // 已经有成功渲染的 SVG，我们坚决不把 error 设为 true（不回退显示源码）
+            // 在流式输出或手动编辑期间遇到语法错误时，静默保留上一版图表
+            console.warn('Mermaid 增量渲染遇到语法错误（保留上一版图表）:', err);
+          }
+        }
+        const errorNode = document.getElementById(renderId);
         if (errorNode) errorNode.remove();
       }
     };
 
-    renderDiagram();
+    // 500ms 节流：计算距离上次渲染已过去多久
+    const now = Date.now();
+    const elapsed = now - lastRenderTime.current;
+    const THROTTLE_INTERVAL = 500;
+
+    if (elapsed >= THROTTLE_INTERVAL) {
+      renderDiagram();
+    } else {
+      timer = setTimeout(() => {
+        renderDiagram();
+      }, THROTTLE_INTERVAL - elapsed);
+    }
 
     return () => {
       isMounted = false;
+      if (timer) clearTimeout(timer);
+      if (idleTimer) clearTimeout(idleTimer);
     };
-  }, [code, uniqueId]);
+  }, [code]);
 
-  if (error || !svg) {
+  if (error || (!svg && !lastValidSvg.current)) {
     return (
       <pre>
         <code className="language-mermaid">{code}</code>
@@ -49,11 +106,24 @@ function MermaidBlock({ code }: { code: string }) {
     );
   }
 
+  const displaySvg = svg || lastValidSvg.current;
+
   return (
-    <div
-      className="mermaid-container my-4 flex justify-center overflow-x-auto bg-white p-4 rounded border border-gray-200"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    <StyledMermaidContainer className="mermaid-container my-4 flex flex-col items-center justify-center overflow-x-auto bg-white p-4 rounded border border-gray-200">
+      {isGenerating && (
+        <div className="mb-3 flex items-center justify-center text-center mx-auto gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm pointer-events-none opacity-90 animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+          图表生成中...
+        </div>
+      )}
+      <div className="w-full flex justify-center overflow-x-auto" dangerouslySetInnerHTML={{ __html: displaySvg }} />
+      {isGenerating && (
+        <div className="mt-3 flex items-center justify-center text-center mx-auto gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm pointer-events-none opacity-90 animate-pulse">
+          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+          图表生成中...
+        </div>
+      )}
+    </StyledMermaidContainer>
   );
 }
 
@@ -125,27 +195,29 @@ const ReactMarkdownBlock = styled(ReactMarkdown)`
   }
 `;
 
+const MARKDOWN_COMPONENTS = {
+  code(props: any) {
+    const { children, className, node, ...rest } = props;
+    const match = /language-(\w+)/.exec(className || '');
+    const isMermaid = match && match[1] === 'mermaid';
+
+    if (isMermaid) {
+      return <MermaidBlock code={String(children).replace(/\n$/, '')} />;
+    }
+
+    return (
+      <code className={className} {...rest}>
+        {children}
+      </code>
+    );
+  },
+};
+
 export default function MarkdownBlock(props: { content: string }) {
   return (
     <ReactMarkdownBlock
       remarkPlugins={[remarkGfm]}
-      components={{
-        code(props) {
-          const { children, className, node, ...rest } = props;
-          const match = /language-(\w+)/.exec(className || '');
-          const isMermaid = match && match[1] === 'mermaid';
-
-          if (isMermaid) {
-            return <MermaidBlock code={String(children).replace(/\n$/, '')} />;
-          }
-
-          return (
-            <code className={className} {...rest}>
-              {children}
-            </code>
-          );
-        },
-      }}
+      components={MARKDOWN_COMPONENTS}
     >
       {props.content}
     </ReactMarkdownBlock>
