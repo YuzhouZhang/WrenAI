@@ -1,4 +1,4 @@
-import { useEffect, useState, useId, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -12,30 +12,27 @@ mermaid.initialize({
 
 const StyledMermaidContainer = styled.div`
   position: relative;
-  svg {
-    animation: mermaidFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  @keyframes mermaidFadeIn {
-    from {
-      opacity: 0.7;
-      transform: scale(0.985);
-    }
-    to {
-      opacity: 1;
-      transform: scale(1);
-    }
-  }
 `;
 
 function MermaidBlock({ code }: { code: string }) {
   const [svg, setSvg] = useState<string>('');
   const [error, setError] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
+  const [dots, setDots] = useState<string>('.');
 
   // 记录上一次成功渲染的 SVG，防止流式输出报错时闪烁回源码
   const lastValidSvg = useRef<string>('');
   // 记录上一次真正渲染的时间戳，用于 500ms 节流 (Throttle)
   const lastRenderTime = useRef<number>(0);
+
+  // 动态递增省略号 '.' -> '..' -> '...' -> '.'
+  useEffect(() => {
+    if (!isGenerating) return;
+    const interval = setInterval(() => {
+      setDots((prev) => (prev.length >= 3 ? '.' : prev + '.'));
+    }, 400);
+    return () => clearInterval(interval);
+  }, [isGenerating]);
 
   useEffect(() => {
     let isMounted = true;
@@ -70,7 +67,10 @@ function MermaidBlock({ code }: { code: string }) {
           } else {
             // 已经有成功渲染的 SVG，我们坚决不把 error 设为 true（不回退显示源码）
             // 在流式输出或手动编辑期间遇到语法错误时，静默保留上一版图表
-            console.warn('Mermaid 增量渲染遇到语法错误（保留上一版图表）:', err);
+            console.warn(
+              'Mermaid 增量渲染遇到语法错误（保留上一版图表）:',
+              err,
+            );
           }
         }
         const errorNode = document.getElementById(renderId);
@@ -108,21 +108,23 @@ function MermaidBlock({ code }: { code: string }) {
 
   const displaySvg = svg || lastValidSvg.current;
 
+  const renderBadge = () => (
+    <div className="flex items-center justify-center text-center mx-auto gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm pointer-events-none opacity-90">
+      <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse"></span>
+      <span>
+        图表生成中<span className="inline-block w-4 text-left">{dots}</span>
+      </span>
+    </div>
+  );
+
   return (
     <StyledMermaidContainer className="mermaid-container my-4 flex flex-col items-center justify-center overflow-x-auto bg-white p-4 rounded border border-gray-200">
-      {isGenerating && (
-        <div className="mb-3 flex items-center justify-center text-center mx-auto gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm pointer-events-none opacity-90 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-          图表生成中...
-        </div>
-      )}
-      <div className="w-full flex justify-center overflow-x-auto" dangerouslySetInnerHTML={{ __html: displaySvg }} />
-      {isGenerating && (
-        <div className="mt-3 flex items-center justify-center text-center mx-auto gap-1.5 text-xs text-blue-600 bg-blue-50 px-3 py-1 rounded-full border border-blue-100 shadow-sm pointer-events-none opacity-90 animate-pulse">
-          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-          图表生成中...
-        </div>
-      )}
+      {isGenerating && <div className="mb-3">{renderBadge()}</div>}
+      <div
+        className="w-full flex justify-center overflow-x-auto"
+        dangerouslySetInnerHTML={{ __html: displaySvg }}
+      />
+      {isGenerating && <div className="mt-3">{renderBadge()}</div>}
     </StyledMermaidContainer>
   );
 }
