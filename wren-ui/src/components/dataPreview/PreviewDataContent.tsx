@@ -61,7 +61,13 @@ export default function PreviewDataContent(props: Props) {
       showHeader={hasColumns}
       dataSource={dataSource}
       columns={tableColumns}
-      pagination={false}
+      pagination={{
+        pageSize: 10,
+        size: 'small',
+        showSizeChanger: true,
+        pageSizeOptions: ['10', '20', '50', '100'],
+        showTotal: (total) => `Total ${total} rows`,
+      }}
       size="small"
       scroll={{ y: 280, x: dynamicWidth }}
       loading={loading}
