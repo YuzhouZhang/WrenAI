@@ -46,7 +46,6 @@ import {
   CreateThreadResponseInput,
   ThreadResponse,
   CreateSqlPairInput,
-  ThreadResponseAnswerStatus,
 } from '@/apollo/client/graphql/__types__';
 import { useCreateSqlPairMutation } from '@/apollo/client/graphql/sqlPairs.generated';
 

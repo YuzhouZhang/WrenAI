@@ -177,7 +177,9 @@ export default async function handler(
           Number(responseId),
           ThreadResponseAnswerStatus.FAILED,
         )
-        .catch((err) => console.error('Failed to set answer status to FAILED', err));
+        .catch((err) => {
+          console.error('Failed to set answer status to FAILED', err);
+        });
     }
     res.status(500).end();
   }
