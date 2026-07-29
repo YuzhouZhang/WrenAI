@@ -167,7 +167,7 @@ const ExpandedRows = ({ record, tipMessage }: ExpandedRowsProps) => {
         pagination={{
           hideOnSinglePage: true,
           size: 'small',
-          pageSize: 10,
+          defaultPageSize: 10,
         }}
         rowKey="rowKey"
         size="small"
@@ -318,7 +318,7 @@ export default function SchemaChangeModal(props: Props) {
               pagination={{
                 hideOnSinglePage: true,
                 size: 'small',
-                pageSize: 10,
+                defaultPageSize: 10,
               }}
               rowClassName={checkIsExpandable}
               expandable={{
@@ -354,7 +354,7 @@ export default function SchemaChangeModal(props: Props) {
               pagination={{
                 hideOnSinglePage: true,
                 size: 'small',
-                pageSize: 10,
+                defaultPageSize: 10,
               }}
               rowClassName={checkIsExpandable}
               expandable={{
@@ -386,7 +386,7 @@ export default function SchemaChangeModal(props: Props) {
               pagination={{
                 hideOnSinglePage: true,
                 size: 'small',
-                pageSize: 10,
+                defaultPageSize: 10,
               }}
               rowClassName={checkIsExpandable}
               expandable={{

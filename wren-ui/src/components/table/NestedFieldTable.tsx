@@ -23,7 +23,7 @@ export default function NestedFieldTable(props: Props) {
       pagination={{
         hideOnSinglePage: true,
         size: 'small',
-        pageSize: 10,
+        defaultPageSize: 10,
       }}
     />
   );

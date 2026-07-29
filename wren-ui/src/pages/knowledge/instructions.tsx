@@ -204,7 +204,7 @@ export default function ManageInstructions() {
           rowKey="id"
           pagination={{
             hideOnSinglePage: true,
-            pageSize: 10,
+            defaultPageSize: 10,
             size: 'small',
           }}
           scroll={{ x: 1080 }}

@@ -12,9 +12,7 @@ import TableTransfer, {
 } from '@/components/table/TableTransfer';
 import { useListDataSourceTablesQuery } from '@/apollo/client/graphql/dataSource.generated';
 import { useListModelsQuery } from '@/apollo/client/graphql/model.generated';
-import { CompactTable, CompactColumn } from '@/apollo/client/graphql/__types__';
-
-const { Option } = Select;
+import { CompactColumn } from '@/apollo/client/graphql/__types__';
 
 const FormFieldKey = {
   SOURCE_TABLE: 'sourceTableName',
@@ -117,18 +115,21 @@ export default function ModelForm(props: Props) {
     }
   }, [defaultValue, form, columns]);
 
-  const tableOptions: JSX.Element[] = dataSourceTables.map(
-    (table: CompactTable) => {
-      const disabled = inUsedModelList.includes(table.name);
-      const option = {
-        disabled,
-        children: table.name,
-        value: table.name,
-      };
+  const tableOptions = useMemo(() => {
+    const inUsedSet = new Set(inUsedModelList);
+    return dataSourceTables.map((table) => ({
+      label: table.name,
+      value: table.name,
+      disabled: inUsedSet.has(table.name),
+    }));
+  }, [dataSourceTables, inUsedModelList]);
 
-      return <Option {...option} key={option.value} />;
-    },
-  );
+  const primaryKeyOptions = useMemo(() => {
+    return selectedColumns.map((column) => ({
+      label: column,
+      value: column,
+    }));
+  }, [selectedColumns]);
 
   const onChangeColumns = (newKeys: string[]) => setSelectedColumns(newKeys);
 
@@ -156,9 +157,13 @@ export default function ModelForm(props: Props) {
                 showSearch
                 loading={dataSourceTablesLoading}
                 disabled={isUpdateMode}
-              >
-                {tableOptions}
-              </Select>
+                options={tableOptions}
+                filterOption={(input, option) =>
+                  String(option?.label ?? '')
+                    .toLowerCase()
+                    .includes(input.toLowerCase())
+                }
+              />
             </Form.Item>
           </div>
         )}
@@ -203,13 +208,13 @@ export default function ModelForm(props: Props) {
             placeholder="Select a column"
             showSearch
             allowClear
-          >
-            {selectedColumns.map((column) => (
-              <Option key={column} value={column}>
-                {column}
-              </Option>
-            ))}
-          </Select>
+            options={primaryKeyOptions}
+            filterOption={(input, option) =>
+              String(option?.label ?? '')
+                .toLowerCase()
+                .includes(input.toLowerCase())
+            }
+          />
         </Form.Item>
       </Form>
     </>

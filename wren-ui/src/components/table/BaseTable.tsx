@@ -82,7 +82,13 @@ export type Props = BaseTableProps & {
 };
 
 export default function BaseTable(props: Props) {
-  const { dataSource = [], columns = [], actionColumns, ...restProps } = props;
+  const {
+    dataSource = [],
+    columns = [],
+    actionColumns,
+    pagination,
+    ...restProps
+  } = props;
 
   const tableColumns = useMemo(
     () => columns.concat(actionColumns || []),
@@ -104,11 +110,16 @@ export default function BaseTable(props: Props) {
       dataSource={tableData}
       showHeader={tableData.length > 0}
       columns={tableColumns}
-      pagination={{
-        hideOnSinglePage: true,
-        pageSize: 10,
-        size: 'small',
-      }}
+      pagination={
+        pagination === false
+          ? false
+          : {
+              hideOnSinglePage: true,
+              defaultPageSize: 10,
+              size: 'small',
+              ...(typeof pagination === 'object' ? pagination : {}),
+            }
+      }
     />
   );
 }

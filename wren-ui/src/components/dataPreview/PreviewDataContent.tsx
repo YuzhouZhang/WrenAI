@@ -62,7 +62,7 @@ export default function PreviewDataContent(props: Props) {
       dataSource={dataSource}
       columns={tableColumns}
       pagination={{
-        pageSize: 10,
+        defaultPageSize: 10,
         size: 'small',
         showSizeChanger: true,
         pageSizeOptions: ['10', '20', '50', '100'],
