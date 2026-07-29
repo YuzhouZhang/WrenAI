@@ -120,6 +120,20 @@ export default async function handler(
         });
     });
 
+    stream.on('error', (err) => {
+      console.error('Error reading text-based answer stream:', err);
+      askingService
+        .changeThreadResponseAnswerDetailStatus(
+          Number(responseId),
+          ThreadResponseAnswerStatus.FAILED,
+          contentMap.getContent(queryId),
+        )
+        .finally(() => {
+          contentMap.remove(queryId);
+          res.status(500).end();
+        });
+    });
+
     // destroy the stream if the client closes the connection
     req.on('close', () => {
       stream.destroy();
@@ -157,6 +171,14 @@ export default async function handler(
     });
   } catch (error) {
     console.error(error);
+    if (responseId) {
+      askingService
+        .changeThreadResponseAnswerDetailStatus(
+          Number(responseId),
+          ThreadResponseAnswerStatus.FAILED,
+        )
+        .catch((err) => console.error('Failed to set answer status to FAILED', err));
+    }
     res.status(500).end();
   }
 }

@@ -88,17 +88,21 @@ export default function TextBasedAnswer(props: AnswerResultProps) {
 
   useEffect(() => {
     if (isStreaming) {
-      setTextAnswer(answerStreamTask);
+      if (answerStreamTask) {
+        setTextAnswer(answerStreamTask);
+      } else if (content) {
+        setTextAnswer(content);
+      }
     } else {
       setTextAnswer(content);
     }
   }, [answerStreamTask, isStreaming, content]);
 
   useEffect(() => {
-    if (isStreaming) {
+    if (isStreaming && !answerStreamTaskResult.error) {
       fetchAnswerStreamingTask(id);
     }
-  }, [isStreaming, id]);
+  }, [isStreaming, id, answerStreamTaskResult.error]);
 
   useEffect(() => {
     return () => {

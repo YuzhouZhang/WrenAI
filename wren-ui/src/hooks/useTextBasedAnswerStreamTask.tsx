@@ -5,6 +5,7 @@ type TextBasedAnswerStreamTaskReturn = [
   {
     data: string;
     loading: boolean;
+    error: boolean;
     onReset: () => void;
   },
 ];
@@ -12,6 +13,7 @@ type TextBasedAnswerStreamTaskReturn = [
 export default function useTextBasedAnswerStreamTask() {
   const eventSourceRef = useRef<EventSource | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<boolean>(false);
   const [data, setData] = useState<string>('');
 
   const onReset = () => {
@@ -20,11 +22,16 @@ export default function useTextBasedAnswerStreamTask() {
       eventSourceRef.current = null;
     }
     setData('');
+    setError(false);
+    setLoading(false);
   };
 
   const fetchAnswerStreamingTask = (responseId: number) => {
+    if (eventSourceRef.current || error) {
+      return;
+    }
     setLoading(true);
-    onReset();
+    setError(false);
 
     const eventSource = new EventSource(
       `/api/ask_task/streaming_answer?responseId=${responseId}`,
@@ -34,16 +41,19 @@ export default function useTextBasedAnswerStreamTask() {
       const eventData = JSON.parse(event.data);
       if (eventData.done) {
         eventSource.close();
+        eventSourceRef.current = null;
         setLoading(false);
       } else {
         setData((state) => state + (eventData?.message || ''));
       }
     };
 
-    eventSource.onerror = (error) => {
-      console.error(error);
+    eventSource.onerror = (err) => {
+      console.error('SSE streaming error:', err);
       eventSource.close();
+      eventSourceRef.current = null;
       setLoading(false);
+      setError(true);
     };
 
     eventSourceRef.current = eventSource;
@@ -51,6 +61,6 @@ export default function useTextBasedAnswerStreamTask() {
 
   return [
     fetchAnswerStreamingTask,
-    { data, loading, onReset },
+    { data, loading, error, onReset },
   ] as TextBasedAnswerStreamTaskReturn;
 }

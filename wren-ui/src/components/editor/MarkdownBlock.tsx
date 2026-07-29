@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, memo } from 'react';
 import styled from 'styled-components';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
@@ -14,14 +14,17 @@ const StyledMermaidContainer = styled.div`
   position: relative;
 `;
 
-function MermaidBlock({ code }: { code: string }) {
-  const [svg, setSvg] = useState<string>('');
+const globalSvgCache = new Map<string, string>();
+
+const MermaidBlock = memo(function MermaidBlock({ code }: { code: string }) {
+  const initialSvg = globalSvgCache.get(code) || '';
+  const [svg, setSvg] = useState<string>(initialSvg);
   const [error, setError] = useState<boolean>(false);
   const [isGenerating, setIsGenerating] = useState<boolean>(false);
   const [dots, setDots] = useState<string>('.');
 
   // 记录上一次成功渲染的 SVG，防止流式输出报错时闪烁回源码
-  const lastValidSvg = useRef<string>('');
+  const lastValidSvg = useRef<string>(initialSvg);
   // 记录上一次真正渲染的时间戳，用于 500ms 节流 (Throttle)
   const lastRenderTime = useRef<number>(0);
   // 标记组件是否为首次挂载（用于区分加载历史消息与增量流式生成）
@@ -37,6 +40,17 @@ function MermaidBlock({ code }: { code: string }) {
   }, [isGenerating]);
 
   useEffect(() => {
+    // 如果已经渲染过相同的 code（例如 GraphQL 轮询触发重新挂载），直接从缓存读取，不重新渲染
+    if (globalSvgCache.has(code)) {
+      const cached = globalSvgCache.get(code)!;
+      setSvg(cached);
+      lastValidSvg.current = cached;
+      setIsGenerating(false);
+      setError(false);
+      isFirstMount.current = false;
+      return;
+    }
+
     let isMounted = true;
     let timer: NodeJS.Timeout | null = null;
     let idleTimer: NodeJS.Timeout | null = null;
@@ -58,6 +72,7 @@ function MermaidBlock({ code }: { code: string }) {
       try {
         const { svg: renderedSvg } = await mermaid.render(renderId, code);
         if (isMounted) {
+          globalSvgCache.set(code, renderedSvg);
           setSvg(renderedSvg);
           lastValidSvg.current = renderedSvg;
           setError(false);
@@ -134,7 +149,7 @@ function MermaidBlock({ code }: { code: string }) {
       {isGenerating && <div className="mt-3">{renderBadge()}</div>}
     </StyledMermaidContainer>
   );
-}
+});
 
 const ReactMarkdownBlock = styled(ReactMarkdown)`
   h1,
