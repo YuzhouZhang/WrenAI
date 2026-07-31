@@ -368,47 +368,21 @@ export class WrenAIAdaptor implements IWrenAIAdaptor {
   }
 
   public async generateRecommendationQuestions(
-    input: RecommendationQuestionsInput,
+    _input: RecommendationQuestionsInput,
   ): Promise<AsyncQueryResponse> {
-    const body = {
-      mdl: JSON.stringify(input.manifest),
-      previous_questions: input.previousQuestions,
-      max_questions: input.maxQuestions,
-      max_categories: input.maxCategories,
-      configuration: input.configuration,
-    };
-    logger.info(`Wren AI: Generating recommendation questions`);
-    try {
-      const res = await axios.post(
-        `${this.wrenAIBaseEndpoint}/v1/question-recommendations`,
-        body,
-      );
-      logger.info(
-        `Wren AI: Generating recommendation questions, queryId: ${res.data.id}`,
-      );
-      return { queryId: res.data.id };
-    } catch (err: any) {
-      logger.debug(
-        `Got error when generating recommendation questions: ${getAIServiceError(err)}`,
-      );
-      throw err;
-    }
+    logger.info(`Wren AI: Question recommendation disabled, skipping API call`);
+    return { queryId: 'disabled-recommendation-id' };
   }
 
   public async getRecommendationQuestionsResult(
     queryId: string,
   ): Promise<RecommendationQuestionsResult> {
-    try {
-      const res = await axios.get(
-        `${this.wrenAIBaseEndpoint}/v1/question-recommendations/${queryId}`,
-      );
-      return this.transformRecommendationQuestionsResult(res.data);
-    } catch (err: any) {
-      logger.debug(
-        `Got error when getting recommendation questions result: ${getAIServiceError(err)}`,
-      );
-      throw err;
-    }
+    logger.info(`Wren AI: Question recommendation disabled, returning empty result for queryId: ${queryId}`);
+    return {
+      status: RecommendationQuestionStatus.FINISHED,
+      response: { questions: [] },
+      error: null,
+    };
   }
 
   public async createTextBasedAnswer(
