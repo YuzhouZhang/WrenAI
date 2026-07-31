@@ -1,9 +1,3 @@
-import clsx from 'clsx';
-import styled from 'styled-components';
-import { useMemo } from 'react';
-import { Skeleton } from 'antd';
-import BulbOutlined from '@ant-design/icons/BulbOutlined';
-import { makeIterable } from '@/utils/iteration';
 import {
   RecommendedQuestionsTask,
   RecommendedQuestionsTaskStatus,
@@ -27,19 +21,6 @@ interface Props {
   onSelect: ({ question, sql }: SelectQuestionProps) => void;
 }
 
-const StyledSkeleton = styled(Skeleton)`
-  padding: 4px 0;
-  .ant-skeleton-paragraph {
-    margin-bottom: 0;
-    li {
-      height: 14px;
-      + li {
-        margin-top: 12px;
-      }
-    }
-  }
-`;
-
 export const getRecommendedQuestionProps = (
   data: RecommendedQuestionsTask,
   show = true,
@@ -59,26 +40,6 @@ export const getRecommendedQuestionProps = (
     },
   };
 };
-
-const QuestionItem = (props: {
-  index: number;
-  question: string;
-  sql: string;
-  onSelect: ({ question, sql }: SelectQuestionProps) => void;
-}) => {
-  const { index, question, sql, onSelect } = props;
-  return (
-    <div className={clsx(index > 0 && 'mt-1')}>
-      <span
-        className="cursor-pointer hover:text"
-        onClick={() => onSelect({ question, sql })}
-      >
-        {question}
-      </span>
-    </div>
-  );
-};
-const QuestionList = makeIterable(QuestionItem);
 
 export default function RecommendedQuestions(_props: Props) {
   return null;

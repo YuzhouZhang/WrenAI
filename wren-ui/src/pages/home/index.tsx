@@ -45,45 +45,15 @@ const SampleQuestionsInstruction = (props) => {
   );
 };
 
-function RecommendedQuestionsInstruction(props) {
-  const { onSelect, loading } = props;
-
-  const {
-    buttonProps,
-    generating,
-    recommendedQuestions,
-    showRetry,
-    showRecommendedQuestionsPromptMode,
-  } = useRecommendedQuestionsInstruction();
-
-  return showRecommendedQuestionsPromptMode ? (
+function RecommendedQuestionsInstruction(_props) {
+  return (
     <div
       className="d-flex align-center flex-column pt-10"
       style={{ margin: 'auto' }}
     >
-      <RecommendedQuestionsPrompt
-        recommendedQuestions={recommendedQuestions}
-        onSelect={onSelect}
-        loading={loading}
-      />
+      <RecommendedQuestionsPrompt />
       <div className="py-12" />
     </div>
-  ) : (
-    <Wrapper>
-      <Button className="mt-6" {...buttonProps} />
-      {generating && (
-        <Text className="mt-3 text-sm gray-6">
-          Thinking of good questions for you... (about 1 minute)
-        </Text>
-      )}
-      {!generating && showRetry && (
-        <Text className="mt-3 text-sm gray-6 text-center">
-          We couldn't think of questions right now.
-          <br />
-          Let's try again later.
-        </Text>
-      )}
-    </Wrapper>
   );
 }
 
