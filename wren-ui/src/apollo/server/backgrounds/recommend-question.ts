@@ -49,6 +49,7 @@ export class ProjectRecommendQuestionBackgroundTracker {
   }
 
   public start() {
+    return;
     this.logger.info('Recommend question background tracker started');
     setInterval(() => {
       const jobs = Object.values(this.tasks).map((project) => async () => {
@@ -199,6 +200,7 @@ export class ThreadRecommendQuestionBackgroundTracker {
   }
 
   public start() {
+    return;
     this.logger.info('Recommend question background tracker started');
     setInterval(() => {
       const jobs = Object.values(this.tasks).map((thread) => async () => {
