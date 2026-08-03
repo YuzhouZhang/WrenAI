@@ -33,6 +33,7 @@ import {
   AskFeedbackInput,
   AskFeedbackResult,
   AskFeedbackStatus,
+  RecommendationQuestionStatus,
 } from '@server/models/adaptor';
 import { getLogger } from '@server/utils';
 import * as Errors from '@server/utils/error';
@@ -370,16 +371,16 @@ export class WrenAIAdaptor implements IWrenAIAdaptor {
   public async generateRecommendationQuestions(
     _input: RecommendationQuestionsInput,
   ): Promise<AsyncQueryResponse> {
-    logger.info(`Wren AI: Question recommendation disabled, skipping API call`);
     return { queryId: 'disabled-recommendation-id' };
   }
 
   public async getRecommendationQuestionsResult(
-    queryId: string,
+    _queryId: string,
   ): Promise<RecommendationQuestionsResult> {
-    logger.info(`Wren AI: Question recommendation disabled, returning empty result for queryId: ${queryId}`);
     return {
-      status: RecommendationQuestionStatus.FINISHED,
+      type: null,
+      status: (RecommendationQuestionStatus?.FINISHED ||
+        'FINISHED') as RecommendationQuestionStatus,
       response: { questions: [] },
       error: null,
     };

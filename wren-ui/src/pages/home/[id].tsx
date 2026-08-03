@@ -146,9 +146,7 @@ export default function HomeThread() {
   const [
     fetchThreadRecommendationQuestions,
     threadRecommendationQuestionsResult,
-  ] = useGetThreadRecommendationQuestionsLazyQuery({
-    pollInterval: 1000,
-  });
+  ] = useGetThreadRecommendationQuestionsLazyQuery();
 
   const [generateThreadResponseAnswer] =
     useGenerateThreadResponseAnswerMutation({

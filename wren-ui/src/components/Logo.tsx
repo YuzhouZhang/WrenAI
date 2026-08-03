@@ -1,12 +1,14 @@
 interface Props {
   size?: number;
   color?: string;
+  className?: string;
 }
 
 export const Logo = (props: Props) => {
-  const { color = 'var(--gray-9)', size = 30 } = props;
+  const { color = 'var(--gray-9)', size = 30, className } = props;
   return (
     <svg
+      className={className}
       style={{ width: size, height: 'auto' }}
       viewBox="0 0 64 64"
       fill="none"

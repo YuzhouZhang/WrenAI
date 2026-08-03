@@ -44,9 +44,7 @@ export default function useRecommendedQuestionsInstruction() {
   >([]);
 
   const [fetchRecommendationQuestions, recommendationQuestionsResult] =
-    useGetProjectRecommendationQuestionsLazyQuery({
-      pollInterval: 2000,
-    });
+    useGetProjectRecommendationQuestionsLazyQuery();
 
   // Handle errors via try/catch blocks rather than onError callback
   const [generateProjectRecommendationQuestions] =

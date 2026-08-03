@@ -507,9 +507,16 @@ export class AskingService implements IAskingService {
       error: null,
     };
     if (thread.queryId && thread.questionsStatus) {
-      res.status = RecommendQuestionResultStatus[thread.questionsStatus]
-        ? RecommendQuestionResultStatus[thread.questionsStatus]
-        : res.status;
+      if (
+        thread.queryId === 'disabled-recommendation-id' ||
+        thread.questionsStatus === RecommendationQuestionStatus.GENERATING
+      ) {
+        res.status = RecommendQuestionResultStatus.FINISHED;
+      } else {
+        res.status = RecommendQuestionResultStatus[thread.questionsStatus]
+          ? RecommendQuestionResultStatus[thread.questionsStatus]
+          : res.status;
+      }
       res.questions = thread.questions || [];
       res.error = thread.questionsError as WrenAIError;
     }

@@ -1,6 +1,5 @@
 import { ComponentRef, useMemo, useRef } from 'react';
 import { useRouter } from 'next/router';
-import { Button, Typography } from 'antd';
 import { Logo } from '@/components/Logo';
 import { Path } from '@/utils/enum';
 import SiderLayout from '@/components/layouts/SiderLayout';
@@ -8,7 +7,6 @@ import Prompt from '@/components/pages/home/prompt';
 import DemoPrompt from '@/components/pages/home/prompt/DemoPrompt';
 import useHomeSidebar from '@/hooks/useHomeSidebar';
 import useAskPrompt from '@/hooks/useAskPrompt';
-import useRecommendedQuestionsInstruction from '@/hooks/useRecommendedQuestionsInstruction';
 import RecommendedQuestionsPrompt from '@/components/pages/home/prompt/RecommendedQuestionsPrompt';
 import {
   useSuggestedQuestionsQuery,
@@ -17,8 +15,6 @@ import {
 } from '@/apollo/client/graphql/home.generated';
 import { useGetSettingsQuery } from '@/apollo/client/graphql/settings.generated';
 import { CreateThreadInput } from '@/apollo/client/graphql/__types__';
-
-const { Text } = Typography;
 
 const Wrapper = ({ children }) => {
   return (
