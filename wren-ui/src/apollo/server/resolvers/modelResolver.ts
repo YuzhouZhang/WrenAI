@@ -905,6 +905,7 @@ export class ModelResolver {
 
     const data = (await ctx.queryService.preview(sql, {
       project,
+      limit: args.where?.limit || 100,
       modelingOnly: false,
       manifest,
     })) as PreviewDataResponse;
