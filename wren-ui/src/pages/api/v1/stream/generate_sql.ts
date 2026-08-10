@@ -36,7 +36,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
-  const { question, language, threadId } = req.body as AsyncAskRequest;
+  const { question, tables, language, threadId } = req.body as AsyncAskRequest;
   const startTime = Date.now();
   let project;
 
@@ -91,6 +91,7 @@ export default async function handler(
     const askTask = await wrenAIAdaptor.ask({
       query: question,
       deployId: lastDeploy.hash,
+      tables,
       histories: transformHistoryInput(histories) as any,
       configurations: {
         language:

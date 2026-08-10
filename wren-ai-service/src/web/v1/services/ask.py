@@ -24,6 +24,7 @@ class AskRequest(BaseRequest):
     # don't recommend to use id as a field name, but it's used in the older version of API spec
     # so we need to support as a choice, and will remove it in the future
     mdl_hash: Optional[str] = Field(validation_alias=AliasChoices("mdl_hash", "id"))
+    tables: Optional[list[str]] = Field(default=None)
     histories: Optional[list[AskHistory]] = Field(default_factory=list)
     ignore_sql_generation_reasoning: bool = False
     enable_column_pruning: bool = False
@@ -237,6 +238,7 @@ class AskService:
                         intent_classification_result = (
                             await self._pipelines["intent_classification"].run(
                                 query=user_query,
+                                tables=ask_request.tables,
                                 histories=histories,
                                 sql_samples=sql_samples,
                                 instructions=instructions,
@@ -345,6 +347,7 @@ class AskService:
 
                 retrieval_result = await self._pipelines["db_schema_retrieval"].run(
                     query=user_query,
+                    tables=ask_request.tables,
                     histories=histories,
                     project_id=ask_request.project_id,
                     enable_column_pruning=enable_column_pruning,

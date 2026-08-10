@@ -32,6 +32,7 @@ export enum ContentBlockContentType {
 // Interfaces for request and events
 export interface AsyncAskRequest {
   question: string;
+  tables?: string[];
   sampleSize?: number;
   language?: string;
   threadId?: string;

@@ -152,16 +152,21 @@ async def table_retrieval(
             {"field": "project_id", "operator": "==", "value": project_id}
         )
 
+    if tables:
+        table_conditions = [
+            {"field": "name", "operator": "==", "value": table_name}
+            for table_name in tables
+        ]
+        filters["conditions"].append(
+            {"operator": "OR", "conditions": table_conditions}
+        )
+
     if embedding:
         return await table_retriever.run(
             query_embedding=embedding.get("embedding"),
             filters=filters,
         )
     else:
-        filters["conditions"].append(
-            {"field": "name", "operator": "in", "value": tables}
-        )
-
         return await table_retriever.run(
             query_embedding=[],
             filters=filters,

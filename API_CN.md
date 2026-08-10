@@ -116,9 +116,20 @@ Wren AI 的 API 采用模块化设计。您可以选择使用“一站式” API
 
 ## 基础用法 (Basic Usage)
 
+### 请求参数说明 (Request Parameters)
+
+| 参数名 | 类型 | 必填 | 描述说明 |
+| :--- | :--- | :--- | :--- |
+| `question` | `string` | 是 | 用户的自然语言提问文本。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
+| `sampleSize` | `number` | 否 | 生成数据总结时的最大采样行数。 |
+| `language` | `string` | 否 | 指定 AI 返回总结与解释的语言（如 `"Chinese"`、`"English"`）。 |
+
 ```json Request
 {
-  "question": "List the top 5 states with the most customers"
+  "question": "List the top 5 states with the most customers",
+  "tables": ["customers", "orders"]
 }
 
 ```
@@ -232,12 +243,23 @@ Wren AI 的 API 采用模块化设计。您可以选择使用“一站式” API
 
 ## 基础用法 (Basic Usage)
 
+### 请求参数说明 (Request Parameters)
+
+| 参数名 | 类型 | 必填 | 描述说明 |
+| :--- | :--- | :--- | :--- |
+| `question` | `string` | 是 | 用户的自然语言提问文本。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
+| `language` | `string` | 否 | 指定 AI 返回推导逻辑与错误响应的语言。 |
+| `returnSqlDialect` | `boolean` | 否 | 是否返回底层数据库的原生 SQL 方言（默认为 `false`）。 |
+
 要生成 SQL 查询，请发送包含您提问的请求：
 
 ```javascript
 // Request
 {
-  "question": "Show me all customers"
+  "question": "Show me all customers",
+  "tables": ["customers"]
 }
 
 // Response
@@ -929,9 +951,20 @@ Response:
 
 ## 基础用法 (Basic Usage)
 
+### 请求参数说明 (Request Parameters)
+
+| 参数名 | 类型 | 必填 | 描述说明 |
+| :--- | :--- | :--- | :--- |
+| `question` | `string` | 是 | 用户的自然语言提问文本。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
+| `sampleSize` | `number` | 否 | 生成数据总结时的最大采样行数。 |
+| `language` | `string` | 否 | 指定 AI 流式输出与解释的语言。 |
+
 ```json Request
 {
-  "question": "列出客户数量最多的前 5 个省份"
+  "question": "列出客户数量最多的前 5 个省份",
+  "tables": ["customers"]
 }
 ```
 
@@ -1303,9 +1336,19 @@ data: {
 
 ## 基础用法 (Basic Usage)
 
+### 请求参数说明 (Request Parameters)
+
+| 参数名 | 类型 | 必填 | 描述说明 |
+| :--- | :--- | :--- | :--- |
+| `question` | `string` | 是 | 用户的自然语言提问文本。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
+| `language` | `string` | 否 | 指定 AI 流式输出与解释的语言。 |
+
 ```json Request
 {
-  "question": "List the top 5 states with the most customers"
+  "question": "List the top 5 states with the most customers",
+  "tables": ["customers"]
 }
 ```
 

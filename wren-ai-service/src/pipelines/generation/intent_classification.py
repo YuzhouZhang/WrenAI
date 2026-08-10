@@ -175,7 +175,7 @@ async def embedding(query: str, embedder: Any, histories: list[AskHistory]) -> d
 
 @observe(capture_input=False)
 async def table_retrieval(
-    embedding: dict, project_id: str, table_retriever: Any
+    embedding: dict, project_id: str, tables: Optional[list[str]], table_retriever: Any
 ) -> dict:
     filters = {
         "operator": "AND",
@@ -187,6 +187,15 @@ async def table_retrieval(
     if project_id:
         filters["conditions"].append(
             {"field": "project_id", "operator": "==", "value": project_id}
+        )
+
+    if tables:
+        table_conditions = [
+            {"field": "name", "operator": "==", "value": table_name}
+            for table_name in tables
+        ]
+        filters["conditions"].append(
+            {"operator": "OR", "conditions": table_conditions}
         )
 
     return await table_retriever.run(
@@ -378,6 +387,7 @@ class IntentClassification(BasicPipeline):
     async def run(
         self,
         query: str,
+        tables: Optional[list[str]] = None,
         project_id: Optional[str] = None,
         histories: Optional[list[AskHistory]] = None,
         sql_samples: Optional[list[dict]] = None,
@@ -389,6 +399,7 @@ class IntentClassification(BasicPipeline):
             ["post_process"],
             inputs={
                 "query": query,
+                "tables": tables,
                 "project_id": project_id or "",
                 "histories": histories or [],
                 "sql_samples": sql_samples or [],

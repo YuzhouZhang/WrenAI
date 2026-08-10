@@ -30,6 +30,7 @@ const {
 
 interface GenerateSqlRequest {
   question: string;
+  tables?: string[];
   threadId?: string;
   language?: string;
   returnSqlDialect?: boolean;
@@ -41,6 +42,7 @@ export default async function handler(
 ) {
   const {
     question,
+    tables,
     threadId,
     language,
     returnSqlDialect = false,
@@ -79,6 +81,7 @@ export default async function handler(
     const task = await wrenAIAdaptor.ask({
       query: question,
       deployId: lastDeploy.hash,
+      tables,
       histories: transformHistoryInput(histories) as any,
       configurations: {
         language:

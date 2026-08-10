@@ -23,6 +23,11 @@ paths:
                 question:
                   type: string
                   description: The natural language question to convert to SQL
+                tables:
+                  type: array
+                  items:
+                    type: string
+                  description: Optional list of table names to restrict the query scope
                 threadId:
                   type: string
                   description: Optional thread ID to maintain conversation context
