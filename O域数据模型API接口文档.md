@@ -121,7 +121,7 @@ Wren AI 的 API 采用模块化设计。您可以选择使用“一站式” API
 | 参数名 | 类型 | 必填 | 描述说明 |
 | :--- | :--- | :--- | :--- |
 | `question` | `string` | 是 | 用户的自然语言提问文本。 |
-| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表（须传入 `/models` 接口响应示例中对应的 `models[i].name` 字段）。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
 | `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
 | `sampleSize` | `number` | 否 | 生成数据总结时的最大采样行数。 |
 | `language` | `string` | 否 | 指定 AI 返回总结与解释的语言（如 `"Chinese"`、`"English"`）。 |
@@ -248,7 +248,7 @@ Wren AI 的 API 采用模块化设计。您可以选择使用“一站式” API
 | 参数名 | 类型 | 必填 | 描述说明 |
 | :--- | :--- | :--- | :--- |
 | `question` | `string` | 是 | 用户的自然语言提问文本。 |
-| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表（须传入 `/models` 接口响应示例中对应的 `models[i].name` 字段）。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
 | `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
 | `language` | `string` | 否 | 指定 AI 返回推导逻辑与错误响应的语言。 |
 | `returnSqlDialect` | `boolean` | 否 | 是否返回底层数据库的原生 SQL 方言（默认为 `false`）。 |
@@ -956,7 +956,7 @@ Response:
 | 参数名 | 类型 | 必填 | 描述说明 |
 | :--- | :--- | :--- | :--- |
 | `question` | `string` | 是 | 用户的自然语言提问文本。 |
-| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表（须传入 `/models` 接口响应示例中对应的 `models[i].name` 字段）。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
 | `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
 | `sampleSize` | `number` | 否 | 生成数据总结时的最大采样行数。 |
 | `language` | `string` | 否 | 指定 AI 流式输出与解释的语言。 |
@@ -1341,7 +1341,7 @@ data: {
 | 参数名 | 类型 | 必填 | 描述说明 |
 | :--- | :--- | :--- | :--- |
 | `question` | `string` | 是 | 用户的自然语言提问文本。 |
-| `tables` | `string[]` | 否 | 限制查询的数据库表名列表。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
+| `tables` | `string[]` | 否 | 限制查询的数据库表名列表（须传入 `/models` 接口响应示例中对应的 `models[i].name` 字段）。若传入，AI 检索与 SQL 生成将仅限定在指定的表范围中。 |
 | `threadId` | `string` | 否 | 上下文会话 ID，用于多轮连续追问。 |
 | `language` | `string` | 否 | 指定 AI 流式输出与解释的语言。 |
 
