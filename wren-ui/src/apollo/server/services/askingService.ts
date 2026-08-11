@@ -62,6 +62,7 @@ export interface AskingPayload {
 
 export interface AskingTaskInput {
   question: string;
+  tables?: string[];
 }
 
 export interface AskingDetailTaskInput {
@@ -609,6 +610,7 @@ export class AskingService implements IAskingService {
       : null;
     const response = await this.askingTaskTracker.createAskingTask({
       query: input.question,
+      tables: input.tables && input.tables.length > 0 ? input.tables : undefined,
       histories,
       deployId,
       configurations: { language },

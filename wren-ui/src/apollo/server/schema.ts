@@ -606,6 +606,7 @@ export const typeDefs = gql`
     question: String!
     # Used for follow-up questions
     threadId: Int
+    tables: [String!]
   }
 
   enum AskingTaskStatus {

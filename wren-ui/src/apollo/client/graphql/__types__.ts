@@ -113,6 +113,7 @@ export type AskingTask = {
 export type AskingTaskInput = {
   question: Scalars['String'];
   threadId?: InputMaybe<Scalars['Int']>;
+  tables?: InputMaybe<Array<Scalars['String']>>;
 };
 
 export enum AskingTaskStatus {

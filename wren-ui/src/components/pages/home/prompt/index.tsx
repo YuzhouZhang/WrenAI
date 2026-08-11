@@ -23,7 +23,7 @@ interface Props {
     payload: CreateThreadInput | CreateThreadResponseInput,
   ) => Promise<void>;
   onStop: () => void;
-  onSubmit: (value: string) => Promise<void>;
+  onSubmit: (value: string, tables?: string[]) => Promise<void>;
   onStopPolling: () => void;
   onStopStreaming: () => void;
   onStopRecommend: () => void;
@@ -35,7 +35,7 @@ interface Props {
 }
 
 interface Attributes {
-  submit: (value: string) => void;
+  submit: (value: string, tables?: string[]) => void;
   close: () => void;
 }
 
@@ -136,13 +136,13 @@ export default forwardRef<Attributes, Props>(function Prompt(props, ref) {
     askProcessState.resetState();
   };
 
-  const submitAsk = async (value: string) => {
+  const submitAsk = async (value: string, tables?: string[]) => {
     setQuestion(value);
     if (isProcessing || !value) return;
     // start the state as understanding when user submit question
     askProcessState.transitionTo(PROCESS_STATE.UNDERSTANDING);
     setShowResult(true);
-    onSubmit && (await onSubmit(value));
+    onSubmit && (await onSubmit(value, tables));
   };
 
   useImperativeHandle(

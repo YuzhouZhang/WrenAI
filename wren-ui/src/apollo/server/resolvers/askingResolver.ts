@@ -173,14 +173,14 @@ export class AskingResolver {
 
   public async createAskingTask(
     _root: any,
-    args: { data: { question: string; threadId?: number } },
+    args: { data: { question: string; threadId?: number; tables?: string[] } },
     ctx: IContext,
   ): Promise<Task> {
-    const { question, threadId } = args.data;
+    const { question, threadId, tables } = args.data;
     const project = await ctx.projectService.getCurrentProject();
 
     const askingService = ctx.askingService;
-    const data = { question };
+    const data = { question, tables };
     const task = await askingService.createAskingTask(data, {
       threadId,
       language: WrenAILanguage[project.language] || WrenAILanguage.EN,

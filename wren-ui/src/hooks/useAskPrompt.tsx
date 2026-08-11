@@ -295,12 +295,18 @@ export default function useAskPrompt(threadId?: number) {
     }
   };
 
-  const onSubmit = async (value) => {
+  const onSubmit = async (value: string, tables?: string[]) => {
     askingStreamTaskResult.reset();
     setOriginalQuestion(value);
     try {
       const response = await createAskingTask({
-        variables: { data: { question: value, threadId } },
+        variables: {
+          data: {
+            question: value,
+            threadId,
+            tables: tables && tables.length > 0 ? tables : undefined,
+          },
+        },
       });
       await fetchAskingTask({
         variables: { taskId: response.data.createAskingTask.id },
