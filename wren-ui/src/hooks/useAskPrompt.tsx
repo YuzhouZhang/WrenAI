@@ -63,16 +63,7 @@ export const isRecommendedFinished = (status: RecommendedQuestionsTaskStatus) =>
     RecommendedQuestionsTaskStatus.NOT_STARTED,
   ].includes(status);
 
-const isNeedRecommendedQuestions = (askingTask: AskingTask) => {
-  const isGeneralOrMisleadingQuery = [
-    AskingTaskType.GENERAL,
-    AskingTaskType.MISLEADING_QUERY,
-  ].includes(askingTask?.type);
-  const isFailed =
-    askingTask?.type !== AskingTaskType.TEXT_TO_SQL &&
-    askingTask?.status === AskingTaskStatus.FAILED;
-  return isGeneralOrMisleadingQuery || isFailed;
-};
+const isNeedRecommendedQuestions = (_askingTask: AskingTask) => false;
 
 const isNeedPreparing = (askingTask: AskingTask) =>
   askingTask?.type === AskingTaskType.TEXT_TO_SQL;
@@ -178,9 +169,7 @@ export default function useAskPrompt(threadId?: number) {
       onError: (error) => console.error(error),
     });
   const [fetchInstantRecommendedQuestions, instantRecommendedQuestionsResult] =
-    useInstantRecommendedQuestionsLazyQuery({
-      pollInterval: 1000,
-    });
+    useInstantRecommendedQuestionsLazyQuery();
 
   const askingTask = useMemo(
     () => askingTaskResult.data?.askingTask || null,
