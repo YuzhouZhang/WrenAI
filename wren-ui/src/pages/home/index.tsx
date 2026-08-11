@@ -92,7 +92,11 @@ export default function Home() {
       const response = await createThread({ variables: { data: payload } });
       const threadId = response.data.createThread.id;
       await preloadThread({ variables: { threadId } });
-      router.push(Path.Home + `/${threadId}`);
+      const tablesQuery = router.query.tables;
+      router.push({
+        pathname: `${Path.Home}/${threadId}`,
+        query: tablesQuery ? { tables: tablesQuery } : undefined,
+      });
     } catch (error) {
       console.error(error);
     }

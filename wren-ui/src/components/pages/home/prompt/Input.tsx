@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, useMemo } from 'react';
+import { useRouter } from 'next/router';
 import { Input, Button, Select, Popover, Tag, Tooltip } from 'antd';
 import FilterOutlined from '@ant-design/icons/FilterOutlined';
 import styled from 'styled-components';
@@ -27,6 +28,7 @@ interface Props {
 
 export default function PromptInput(props: Props) {
   const { onAsk, isProcessing, question, inputProps } = props;
+  const router = useRouter();
   const $promptInput = useRef<HTMLTextAreaElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [selectedTables, setSelectedTables] = useState<string[]>([]);
@@ -40,6 +42,34 @@ export default function PromptInput(props: Props) {
       value: m.referenceName,
     }));
   }, [modelsData]);
+
+  useEffect(() => {
+    if (!router.isReady) return;
+    if (router.query.tables) {
+      const queryTables = Array.isArray(router.query.tables)
+        ? router.query.tables
+        : (router.query.tables as string).split(',').filter(Boolean);
+      if (queryTables.length > 0) {
+        setSelectedTables(queryTables);
+      }
+    }
+  }, [router.isReady, router.query.tables]);
+
+  const updateSelectedTables = (tables: string[]) => {
+    setSelectedTables(tables);
+    if (!router.isReady) return;
+    const newQuery = { ...router.query };
+    if (tables.length > 0) {
+      newQuery.tables = tables.join(',');
+    } else {
+      delete newQuery.tables;
+    }
+    router.replace(
+      { pathname: router.pathname, query: newQuery },
+      undefined,
+      { shallow: true }
+    );
+  };
 
   useEffect(() => {
     if (question) setInputValue(question);
@@ -91,7 +121,7 @@ export default function PromptInput(props: Props) {
         style={{ width: '100%' }}
         options={tableOptions}
         value={selectedTables}
-        onChange={setSelectedTables}
+        onChange={updateSelectedTables}
         maxTagCount="responsive"
         filterOption={(input, option) =>
           ((option?.label as string) || '')
@@ -112,7 +142,7 @@ export default function PromptInput(props: Props) {
               key={tbl}
               closable
               onClose={() =>
-                setSelectedTables(selectedTables.filter((t) => t !== tbl))
+                updateSelectedTables(selectedTables.filter((t) => t !== tbl))
               }
               color="blue"
             >
@@ -123,7 +153,7 @@ export default function PromptInput(props: Props) {
             type="link"
             size="small"
             style={{ padding: 0, fontSize: 12 }}
-            onClick={() => setSelectedTables([])}
+            onClick={() => updateSelectedTables([])}
           >
             清空
           </Button>
