@@ -9,7 +9,9 @@ import {
   isAskResultFinished,
   transformHistoryInput,
   validateAskResult,
-} from '@/apollo/server/utils/apiUtils';
+  authenticateApiKey,
+  calculateEffectiveTables,
+} from '@/apollo/server/utils';
 import {
   AskResult,
   AskResultStatus,
@@ -29,19 +31,25 @@ import {
 const logger = getLogger('API_STREAM_GENERATE_SQL');
 logger.level = 'debug';
 
-const { apiHistoryRepository, projectService, deployService, wrenAIAdaptor } =
-  components;
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const { apiHistoryRepository, apiKeyRepository, projectService, deployService, wrenAIAdaptor } =
+    components;
   const { question, tables, language, threadId } = req.body as AsyncAskRequest;
   const startTime = Date.now();
   let project;
 
   try {
     project = await projectService.getCurrentProject();
+
+    // Authenticate API key if provided
+    const apiKey = await authenticateApiKey(req, apiKeyRepository);
+    let effectiveTables = tables;
+    if (apiKey) {
+      effectiveTables = calculateEffectiveTables(tables, apiKey.allowedTables);
+    }
 
     // Only allow POST method
     if (req.method !== 'POST') {
@@ -91,7 +99,7 @@ export default async function handler(
     const askTask = await wrenAIAdaptor.ask({
       query: question,
       deployId: lastDeploy.hash,
-      tables,
+      tables: effectiveTables,
       histories: transformHistoryInput(histories) as any,
       configurations: {
         language:
@@ -173,7 +181,7 @@ export default async function handler(
     });
 
     endStream(res, newThreadId, startTime);
-  } catch (error) {
+  } catch (error: any) {
     logger.error('Error in stream generate SQL API:', error);
 
     // Log the error

@@ -13,33 +13,36 @@ import {
   isAskResultFinished,
   validateAskResult,
   transformHistoryInput,
-} from '@/apollo/server/utils/apiUtils';
+  authenticateApiKey,
+  calculateEffectiveTables,
+  filterManifestByAllowedTables,
+} from '@/apollo/server/utils';
 import { DataSourceName } from '@server/types';
 
 const logger = getLogger('API_GENERATE_SQL');
 logger.level = 'debug';
 
-const {
-  apiHistoryRepository,
-  projectService,
-  deployService,
-  wrenAIAdaptor,
-  wrenEngineAdaptor,
-  ibisAdaptor,
-} = components;
-
 interface GenerateSqlRequest {
   question: string;
   tables?: string[];
-  threadId?: string;
   language?: string;
-  returnSqlDialect?: boolean;
+  threadId?: string;
+  returnSqlDialect?: string;
 }
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const {
+    apiHistoryRepository,
+    apiKeyRepository,
+    projectService,
+    deployService,
+    wrenAIAdaptor,
+    wrenEngineAdaptor,
+    ibisAdaptor,
+  } = components;
   const {
     question,
     tables,
@@ -52,6 +55,13 @@ export default async function handler(
 
   try {
     project = await projectService.getCurrentProject();
+
+    // Authenticate API key if provided
+    const apiKey = await authenticateApiKey(req, apiKeyRepository);
+    let effectiveTables = tables;
+    if (apiKey) {
+      effectiveTables = calculateEffectiveTables(tables, apiKey.allowedTables);
+    }
 
     // Only allow POST method
     if (req.method !== 'POST') {
@@ -81,7 +91,7 @@ export default async function handler(
     const task = await wrenAIAdaptor.ask({
       query: question,
       deployId: lastDeploy.hash,
-      tables,
+      tables: effectiveTables,
       histories: transformHistoryInput(histories) as any,
       configurations: {
         language:
@@ -120,17 +130,21 @@ export default async function handler(
 
     // If returnSqlDialect is true, also get and return the native SQL
     if (returnSqlDialect && sql) {
+      const manifest = apiKey
+        ? filterManifestByAllowedTables(lastDeploy.manifest, apiKey.allowedTables)
+        : lastDeploy.manifest;
+
       let nativeSql: string;
       if (project.type === DataSourceName.DUCKDB) {
         nativeSql = await wrenEngineAdaptor.getNativeSQL(sql, {
-          manifest: lastDeploy.manifest,
+          manifest,
           modelingOnly: false,
         });
       } else {
         nativeSql = await ibisAdaptor.getNativeSql({
           dataSource: project.type,
           sql,
-          mdl: lastDeploy.manifest,
+          mdl: manifest,
         });
       }
 

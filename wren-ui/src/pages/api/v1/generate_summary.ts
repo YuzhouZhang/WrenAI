@@ -9,7 +9,8 @@ import {
   handleApiError,
   MAX_WAIT_TIME,
   validateSummaryResult,
-} from '@/apollo/server/utils/apiUtils';
+  authenticateApiKey,
+} from '@/apollo/server/utils';
 import {
   TextBasedAnswerInput,
   TextBasedAnswerResult,
@@ -21,21 +22,20 @@ import { getLogger } from '@server/utils';
 const logger = getLogger('API_GENERATE_SUMMARY');
 logger.level = 'debug';
 
-const { projectService, wrenAIAdaptor, deployService, queryService } =
-  components;
-
 interface GenerateSummaryRequest {
-  question: string;
-  sql: string;
+  threadId?: string;
+  question?: string;
+  sql?: string;
   sampleSize?: number;
   language?: string;
-  threadId?: string;
 }
 
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const { projectService, wrenAIAdaptor, deployService, queryService, apiKeyRepository } =
+    components;
   const { question, sql, sampleSize, language, threadId } =
     req.body as GenerateSummaryRequest;
   const startTime = Date.now();
@@ -43,6 +43,9 @@ export default async function handler(
 
   try {
     project = await projectService.getCurrentProject();
+
+    // Authenticate API key if provided
+    await authenticateApiKey(req, apiKeyRepository);
 
     // Only allow POST method
     if (req.method !== 'POST') {
@@ -68,10 +71,10 @@ export default async function handler(
       );
     }
 
-    // Create a new thread if it's a new question
+    // Create a new thread if it's a new request
     const newThreadId = threadId || uuidv4();
 
-    // Get the data from the SQL
+    // Step 1: Execute SQL to get sample data
     let sqlData;
     try {
       const queryResult = await queryService.preview(sql, {
@@ -83,13 +86,13 @@ export default async function handler(
       sqlData = queryResult;
     } catch (queryError) {
       throw new ApiError(
-        queryError.message || 'Error executing SQL query',
+        queryError.message || 'Error executing SQL query for summary',
         400,
         Errors.GeneralErrorCodes.INVALID_SQL_ERROR,
       );
     }
 
-    // Create text-based answer input for summary generation
+    // Step 2: Generate summary using text-based answer
     const textBasedAnswerInput: TextBasedAnswerInput = {
       query: question,
       sql,
@@ -102,21 +105,23 @@ export default async function handler(
     };
 
     // Start the summary generation task
-    const task =
+    const summaryTask =
       await wrenAIAdaptor.createTextBasedAnswer(textBasedAnswerInput);
 
-    if (!task || !task.queryId) {
+    if (!summaryTask || !summaryTask.queryId) {
       throw new ApiError('Failed to start summary generation task', 500);
     }
 
-    // Poll for the result
+    // Poll for the summary result
     const deadline = Date.now() + MAX_WAIT_TIME;
-    let result: TextBasedAnswerResult;
+    let summaryResult: TextBasedAnswerResult;
     while (true) {
-      result = await wrenAIAdaptor.getTextBasedAnswerResult(task.queryId);
+      summaryResult = await wrenAIAdaptor.getTextBasedAnswerResult(
+        summaryTask.queryId,
+      );
       if (
-        result.status === TextBasedAnswerStatus.SUCCEEDED ||
-        result.status === TextBasedAnswerStatus.FAILED
+        summaryResult.status === TextBasedAnswerStatus.SUCCEEDED ||
+        summaryResult.status === TextBasedAnswerStatus.FAILED
       ) {
         break;
       }
@@ -129,16 +134,18 @@ export default async function handler(
         );
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Poll every second
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     // Validate the summary result
-    validateSummaryResult(result);
+    validateSummaryResult(summaryResult);
 
-    // Stream the content to get the summary
+    // Step 3: Stream the content to get the full summary text
     let summary = '';
-    if (result.status === TextBasedAnswerStatus.SUCCEEDED) {
-      const stream = await wrenAIAdaptor.streamTextBasedAnswer(task.queryId);
+    if (summaryResult.status === TextBasedAnswerStatus.SUCCEEDED) {
+      const stream = await wrenAIAdaptor.streamTextBasedAnswer(
+        summaryTask.queryId,
+      );
 
       // Collect the streamed content
       const streamPromise = new Promise<void>((resolve, reject) => {
@@ -158,7 +165,6 @@ export default async function handler(
           reject(error);
         });
 
-        // Handle client disconnect
         req.on('close', () => {
           stream.destroy();
           reject(new Error('Client disconnected'));
@@ -168,7 +174,7 @@ export default async function handler(
       await streamPromise;
     }
 
-    // Return the summary with ID and threadId
+    // Return the summary result
     await respondWith({
       res,
       statusCode: 200,

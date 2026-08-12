@@ -30,6 +30,50 @@ export const sendMessageStart = (res: NextApiResponse) => {
 };
 
 /**
+ * Send content block start event to client
+ */
+export const sendContentBlockStart = (
+  res: NextApiResponse,
+  name: any,
+) => {
+  const contentBlockStartEvent = {
+    type: EventType.CONTENT_BLOCK_START,
+    content_block: {
+      type: 'text',
+      name,
+    },
+    timestamp: Date.now(),
+  };
+  sendSSEEvent(res, contentBlockStartEvent as any);
+};
+
+/**
+ * Send content block delta event to client
+ */
+export const sendContentBlockDelta = (res: NextApiResponse, text: string) => {
+  const contentBlockDeltaEvent = {
+    type: EventType.CONTENT_BLOCK_DELTA,
+    delta: {
+      type: 'text_delta',
+      text,
+    },
+    timestamp: Date.now(),
+  };
+  sendSSEEvent(res, contentBlockDeltaEvent as any);
+};
+
+/**
+ * Send content block stop event to client
+ */
+export const sendContentBlockStop = (res: NextApiResponse) => {
+  const contentBlockStopEvent = {
+    type: EventType.CONTENT_BLOCK_STOP,
+    timestamp: Date.now(),
+  };
+  sendSSEEvent(res, contentBlockStopEvent as any);
+};
+
+/**
  * Send message stop event to client
  */
 export const sendMessageStop = (

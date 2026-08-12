@@ -12,7 +12,7 @@ import {
   TextBasedAnswerStatus,
 } from '@/apollo/server/models/adaptor';
 
-const { apiHistoryRepository } = components;
+
 
 export const MAX_WAIT_TIME = 1000 * 60 * 3; // 3 minutes
 
@@ -195,7 +195,7 @@ export const respondWith = async ({
 }) => {
   const durationMs = startTime ? Date.now() - startTime : undefined;
   const responseId = uuidv4();
-  await apiHistoryRepository.createOne({
+  await components.apiHistoryRepository.createOne({
     id: responseId,
     projectId,
     apiType,
@@ -238,7 +238,7 @@ export const respondWithSimple = async ({
 }) => {
   const durationMs = startTime ? Date.now() - startTime : undefined;
   const responseId = uuidv4();
-  await apiHistoryRepository.createOne({
+  await components.apiHistoryRepository.createOne({
     id: responseId,
     projectId,
     apiType,

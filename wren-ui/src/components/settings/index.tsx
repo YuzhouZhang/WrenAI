@@ -8,6 +8,7 @@ import SettingOutlined from '@ant-design/icons/SettingOutlined';
 import InfoCircleOutlined from '@ant-design/icons/InfoCircleOutlined';
 import DataSourceSettings from './DataSourceSettings';
 import ProjectSettings from './ProjectSettings';
+import ApiKeySettings from './ApiKeySettings';
 import { getSettingMenu } from './utils';
 import {
   useGetSettingsLazyQuery,
@@ -71,6 +72,7 @@ const DynamicComponent = ({
         />
       ),
       [SETTINGS.PROJECT]: <ProjectSettings data={{ language }} />,
+      [SETTINGS.API_KEYS]: <ApiKeySettings />,
     }[menu] || null
   );
 };

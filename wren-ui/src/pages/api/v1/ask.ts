@@ -11,7 +11,10 @@ import {
   isAskResultFinished,
   validateSummaryResult,
   transformHistoryInput,
-} from '@/apollo/server/utils/apiUtils';
+  authenticateApiKey,
+  calculateEffectiveTables,
+  filterManifestByAllowedTables,
+} from '@/apollo/server/utils';
 import {
   AskResult,
   WrenAILanguage,
@@ -26,14 +29,6 @@ import { getLogger } from '@server/utils';
 const logger = getLogger('API_ASK');
 logger.level = 'debug';
 
-const {
-  apiHistoryRepository,
-  projectService,
-  deployService,
-  wrenAIAdaptor,
-  queryService,
-} = components;
-
 interface AskRequest {
   question: string;
   tables?: string[];
@@ -46,12 +41,27 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const {
+    apiHistoryRepository,
+    apiKeyRepository,
+    projectService,
+    deployService,
+    wrenAIAdaptor,
+    queryService,
+  } = components;
   const { question, tables, sampleSize, language, threadId } = req.body as AskRequest;
   const startTime = Date.now();
   let project;
 
   try {
     project = await projectService.getCurrentProject();
+
+    // Authenticate API Key if provided
+    const apiKey = await authenticateApiKey(req, apiKeyRepository);
+    let effectiveTables = tables;
+    if (apiKey) {
+      effectiveTables = calculateEffectiveTables(tables, apiKey.allowedTables);
+    }
 
     // Only allow POST method
     if (req.method !== 'POST') {
@@ -85,7 +95,7 @@ export default async function handler(
     const askTask = await wrenAIAdaptor.ask({
       query: question,
       deployId: lastDeploy.hash,
-      tables,
+      tables: effectiveTables,
       histories: transformHistoryInput(histories) as any,
       configurations: {
         language:
@@ -114,13 +124,11 @@ export default async function handler(
     }
 
     // Validate the AI result
-    // Check for error in result
     if (askResult.error) {
       const errorMessage =
         (askResult.error as WrenAIError).message || 'Unknown error';
       const additionalData: Record<string, any> = {};
 
-      // Include invalid SQL if available
       if (askResult.invalidSql) {
         additionalData.invalidSql = askResult.invalidSql;
       }
@@ -135,11 +143,9 @@ export default async function handler(
 
     // Check for general type response (explanation streaming)
     if (askResult.type === AskResultType.GENERAL) {
-      // Stream the explanation content
       let explanation = '';
       const stream = await wrenAIAdaptor.getAskStreamingResult(askTask.queryId);
 
-      // Collect the streamed content
       const streamPromise = new Promise<void>((resolve, reject) => {
         stream.on('data', (chunk) => {
           const chunkString = chunk.toString('utf-8');
@@ -157,7 +163,6 @@ export default async function handler(
           reject(error);
         });
 
-        // Handle client disconnect
         req.on('close', () => {
           stream.destroy();
           reject(new Error('Client disconnected'));
@@ -166,7 +171,6 @@ export default async function handler(
 
       await streamPromise;
 
-      // Return the explanation result
       await respondWith({
         res,
         statusCode: 200,
@@ -191,13 +195,17 @@ export default async function handler(
       throw new ApiError('No SQL generated', 400);
     }
 
-    // Step 2: Execute SQL to get data
+    // Step 2: Execute SQL to get data with filtered manifest
     let sqlData;
     try {
+      const manifest = apiKey
+        ? filterManifestByAllowedTables(lastDeploy.manifest, apiKey.allowedTables)
+        : lastDeploy.manifest;
+
       const queryResult = await queryService.preview(sql, {
         project,
         limit: sampleSize || 500,
-        manifest: lastDeploy.manifest,
+        manifest,
         modelingOnly: false,
       });
       sqlData = queryResult;
@@ -221,7 +229,6 @@ export default async function handler(
       },
     };
 
-    // Start the summary generation task
     const summaryTask =
       await wrenAIAdaptor.createTextBasedAnswer(textBasedAnswerInput);
 
@@ -229,7 +236,6 @@ export default async function handler(
       throw new ApiError('Failed to start summary generation task', 500);
     }
 
-    // Poll for the summary result
     let summaryResult: TextBasedAnswerResult;
     while (true) {
       summaryResult = await wrenAIAdaptor.getTextBasedAnswerResult(
@@ -250,10 +256,9 @@ export default async function handler(
         );
       }
 
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Poll every second
+      await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
-    // Validate the summary result
     validateSummaryResult(summaryResult);
 
     // Step 4: Stream the content to get the summary
@@ -263,7 +268,6 @@ export default async function handler(
         summaryTask.queryId,
       );
 
-      // Collect the streamed content
       const streamPromise = new Promise<void>((resolve, reject) => {
         stream.on('data', (chunk) => {
           const chunkString = chunk.toString('utf-8');
@@ -281,7 +285,6 @@ export default async function handler(
           reject(error);
         });
 
-        // Handle client disconnect
         req.on('close', () => {
           stream.destroy();
           reject(new Error('Client disconnected'));
@@ -291,7 +294,6 @@ export default async function handler(
       await streamPromise;
     }
 
-    // Return the combined result
     await respondWith({
       res,
       statusCode: 200,

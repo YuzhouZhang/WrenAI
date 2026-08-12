@@ -19,6 +19,7 @@ import {
   InstructionRepository,
   ApiHistoryRepository,
   DashboardItemRefreshJobRepository,
+  ApiKeyRepository,
 } from '@server/repositories';
 import {
   WrenEngineAdaptor,
@@ -75,6 +76,7 @@ export const initComponents = () => {
   const apiHistoryRepository = new ApiHistoryRepository(knex);
   const dashboardItemRefreshJobRepository =
     new DashboardItemRefreshJobRepository(knex);
+  const apiKeyRepository = new ApiKeyRepository(knex);
 
   // adaptors
   const wrenEngineAdaptor = new WrenEngineAdaptor({
@@ -196,6 +198,7 @@ export const initComponents = () => {
     apiHistoryRepository,
     instructionRepository,
     dashboardItemRefreshJobRepository,
+    apiKeyRepository,
 
     // adaptors
     wrenEngineAdaptor,

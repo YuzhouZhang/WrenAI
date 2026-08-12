@@ -57,6 +57,33 @@ export const typeDefs = gql`
     hasMore: Boolean!
   }
 
+  type ApiKey {
+    id: ID!
+    projectId: Int!
+    name: String!
+    keyPrefix: String!
+    allowedTables: [String!]!
+    isActive: Boolean!
+    createdAt: String!
+    updatedAt: String
+  }
+
+  type CreateApiKeyPayload {
+    apiKey: ApiKey!
+    rawKey: String!
+  }
+
+  input CreateApiKeyInput {
+    name: String!
+    allowedTables: [String!]!
+  }
+
+  input UpdateApiKeyInput {
+    name: String
+    allowedTables: [String!]
+    isActive: Boolean
+  }
+
   enum DataSourceName {
     ATHENA
     BIG_QUERY
@@ -1168,6 +1195,9 @@ export const typeDefs = gql`
       filter: ApiHistoryFilterInput
       pagination: ApiHistoryPaginationInput!
     ): ApiHistoryPaginatedResponse!
+
+    # Api Key
+    apiKeys: [ApiKey!]!
   }
 
   type Mutation {
@@ -1313,5 +1343,10 @@ export const typeDefs = gql`
       data: UpdateInstructionInput!
     ): Instruction!
     deleteInstruction(where: InstructionWhereInput!): Boolean!
+
+    # Api Key
+    createApiKey(data: CreateApiKeyInput!): CreateApiKeyPayload!
+    updateApiKey(id: ID!, data: UpdateApiKeyInput!): ApiKey!
+    deleteApiKey(id: ID!): Boolean!
   }
 `;

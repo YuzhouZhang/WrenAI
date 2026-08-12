@@ -9,7 +9,10 @@ import {
   isAskResultFinished,
   validateSummaryResult,
   transformHistoryInput,
-} from '@/apollo/server/utils/apiUtils';
+  authenticateApiKey,
+  calculateEffectiveTables,
+  filterManifestByAllowedTables,
+} from '@/apollo/server/utils';
 import {
   AskResult,
   AskResultStatus,
@@ -29,6 +32,9 @@ import {
   ContentBlockStartEvent,
   ContentBlockDeltaEvent,
   ContentBlockStopEvent,
+  sendContentBlockStart,
+  sendContentBlockDelta,
+  sendContentBlockStop,
   sendSSEEvent,
   sendMessageStart,
   sendStateUpdate,
@@ -40,62 +46,18 @@ import {
 const logger = getLogger('API_STREAM_ASK');
 logger.level = 'debug';
 
-const {
-  apiHistoryRepository,
-  projectService,
-  deployService,
-  wrenAIAdaptor,
-  queryService,
-} = components;
-
-/**
- * Send content block start event to client
- */
-const sendContentBlockStart = (
-  res: NextApiResponse,
-  name: ContentBlockContentType,
-) => {
-  const contentBlockStartEvent: ContentBlockStartEvent = {
-    type: EventType.CONTENT_BLOCK_START,
-    content_block: {
-      type: 'text',
-      name,
-    },
-    timestamp: Date.now(),
-  };
-  sendSSEEvent(res, contentBlockStartEvent);
-};
-
-/**
- * Send content block delta event to client
- */
-const sendContentBlockDelta = (res: NextApiResponse, text: string) => {
-  const contentBlockDeltaEvent: ContentBlockDeltaEvent = {
-    type: EventType.CONTENT_BLOCK_DELTA,
-    delta: {
-      type: 'text_delta',
-      text,
-    },
-    timestamp: Date.now(),
-  };
-  sendSSEEvent(res, contentBlockDeltaEvent);
-};
-
-/**
- * Send content block stop event to client
- */
-const sendContentBlockStop = (res: NextApiResponse) => {
-  const contentBlockStopEvent: ContentBlockStopEvent = {
-    type: EventType.CONTENT_BLOCK_STOP,
-    timestamp: Date.now(),
-  };
-  sendSSEEvent(res, contentBlockStopEvent);
-};
-
 export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const {
+    apiHistoryRepository,
+    apiKeyRepository,
+    projectService,
+    deployService,
+    wrenAIAdaptor,
+    queryService,
+  } = components;
   const { question, tables, sampleSize, language, threadId } =
     req.body as AsyncAskRequest;
   const startTime = Date.now();
@@ -103,6 +65,13 @@ export default async function handler(
 
   try {
     project = await projectService.getCurrentProject();
+
+    // Authenticate API key if provided
+    const apiKey = await authenticateApiKey(req, apiKeyRepository);
+    let effectiveTables = tables;
+    if (apiKey) {
+      effectiveTables = calculateEffectiveTables(tables, apiKey.allowedTables);
+    }
 
     // Only allow POST method
     if (req.method !== 'POST') {
@@ -151,7 +120,7 @@ export default async function handler(
     const askTask = await wrenAIAdaptor.ask({
       query: question,
       deployId: lastDeploy.hash,
-      tables,
+      tables: effectiveTables,
       histories: transformHistoryInput(histories) as any,
       configurations: {
         language:
@@ -307,10 +276,14 @@ export default async function handler(
     sendStateUpdate(res, StateType.SQL_EXECUTION_START, { sql });
     let sqlData;
     try {
+      const manifest = apiKey
+        ? filterManifestByAllowedTables(lastDeploy.manifest, apiKey.allowedTables)
+        : lastDeploy.manifest;
+
       const queryResult = await queryService.preview(sql, {
         project,
         limit: sampleSize || 500,
-        manifest: lastDeploy.manifest,
+        manifest,
         modelingOnly: false,
       });
       sqlData = queryResult;

@@ -21,21 +21,41 @@ Wren AI 暴露了一系列核心 API 来解答用户的问题，包括：将问�
 所有 API 请求都必须发送到网关的服务地址：
 
 ```
-http://188.107.223.24:3001
+http://188.107.223.20:3000/
 ```
 
 ### 🔐 认证方式 (Authentication)
 
-API 访问已启用 Nginx 网关的 API Key 认证机制。您必须在所有的请求头（Header）中携带以下参数：
+API 访问已启用系统的 API Key 认证与表级权限隔离机制。您必须在所有的请求头（Header）中携带有效密钥。系统支持以下两种认证请求头形式：
 
-* **请求头名称 (Header Name)**：`X-API-KEY`
-* **请求头数值 (Header Value)**：分配给您的 API Key（例如：`zhushuhan123`）
+* **方式一（推荐）：标准 Bearer Header**
+  * **Header 名称**：`Authorization`
+  * **Header 数值**：`Bearer <YOUR_API_KEY>`（例如：`Bearer wren_sk_6506a06382255c417dbcb3013f8a2f2c4819f8d334a94714`）
 
-如果缺少该请求头或使用了无效的 API Key，网关将返回 `401 Unauthorized` 响应：
+* **方式二：自定义 Key Header**
+  * **Header 名称**：`X-API-KEY`
+  * **Header 数值**：`<YOUR_API_KEY>`（例如：`wren_sk_6506a06382255c417dbcb3013f8a2f2c4819f8d334a94714`）
+
+#### 🔑 API Key 的申请与管理
+管理员可在 Wren AI 控制台的 **Settings ➔ API Key Management** 页面统一管理密钥：
+- 每个 API Key 可被分配针对特定数据表的访问权限（例如仅允许访问 `mysql.telecom_db.field_level_info`）或全表访问权限 (`*`)。
+- 新建的 API Key 格式为以 `wren_sk_` 为前缀的 48 位安全随机字符串，创建时仅展示一次，请妥善保管。
+
+#### ⚠️ 鉴权与权限拦截错误响应
+
+1. **未提供密钥或密钥无效/已禁用（`401 Unauthorized`）**：
 ```json
 {
-  "error": "Unauthorized",
-  "message": "Invalid or missing X-API-KEY header."
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "error": "Invalid or inactive API Key"
+}
+```
+
+2. **请求的数据表不在该 API Key 的授权范围内（`403 Forbidden`）**：
+```json
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "error": "Requested tables are not authorized for this API Key"
 }
 ```
 

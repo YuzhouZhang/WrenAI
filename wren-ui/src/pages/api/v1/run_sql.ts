@@ -9,22 +9,17 @@ import {
   ApiError,
   respondWith,
   handleApiError,
-} from '@/apollo/server/utils/apiUtils';
+  authenticateApiKey,
+  filterManifestByAllowedTables,
+} from '@/apollo/server/utils';
 import { transformToObjects } from '@server/utils/dataUtils';
-
 const logger = getLogger('API_RUN_SQL');
 logger.level = 'debug';
 
-const { projectService, queryService, deployService } = components;
-
 /**
  * Validates the SQL result and ensures it has the expected format
- * @param result The result to validate
- * @returns The validated result as PreviewDataResponse
- * @throws ApiError if the result is in an unexpected format
  */
 const validateSqlResult = (result: any): PreviewDataResponse => {
-  // Ensure we have a valid result with expected properties
   if (typeof result === 'boolean') {
     throw new ApiError('Unexpected query result format', 500);
   }
@@ -42,6 +37,8 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse,
 ) {
+  const { projectService, queryService, deployService, apiKeyRepository } =
+    components;
   const { sql, threadId, limit = 1000 } = req.body as RunSqlRequest;
   const startTime = Date.now();
   let project;
@@ -52,12 +49,15 @@ export default async function handler(
       throw new ApiError('Method not allowed', 405);
     }
 
-    // input validation
+    // Input validation
     if (!sql) {
       throw new ApiError('SQL is required', 400);
     }
 
     project = await projectService.getCurrentProject();
+
+    // Authenticate API key if provided
+    const apiKey = await authenticateApiKey(req, apiKeyRepository);
 
     const deployment = await deployService.getLastDeployment(project.id);
 
@@ -69,7 +69,9 @@ export default async function handler(
       );
     }
 
-    const manifest = deployment.manifest;
+    const manifest = apiKey
+      ? filterManifestByAllowedTables(deployment.manifest, apiKey.allowedTables)
+      : deployment.manifest;
 
     // Execute the SQL query
     try {
