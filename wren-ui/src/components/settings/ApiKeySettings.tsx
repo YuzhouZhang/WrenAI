@@ -598,8 +598,40 @@ export default function ApiKeySettings() {
             type="default"
             icon={<CopyOutlined />}
             onClick={() => {
-              navigator.clipboard.writeText(createdRawKey);
-              message.success('API Key copied to clipboard');
+              const copyToClipboard = (text: string) => {
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard
+                    .writeText(text)
+                    .then(() => message.success('API Key copied to clipboard'))
+                    .catch(() => fallbackCopy(text));
+                } else {
+                  fallbackCopy(text);
+                }
+              };
+
+              const fallbackCopy = (text: string) => {
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+
+                try {
+                  const successful = document.execCommand('copy');
+                  if (successful) {
+                    message.success('API Key copied to clipboard');
+                  } else {
+                    message.error('Copy failed, please select and copy manually');
+                  }
+                } catch (err) {
+                  message.error('Copy failed, please select and copy manually');
+                }
+                document.body.removeChild(textArea);
+              };
+
+              copyToClipboard(createdRawKey);
             }}
           >
             Copy
