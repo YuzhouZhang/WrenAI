@@ -1,4 +1,4 @@
-import { Form, Input, Switch } from 'antd';
+import { Form, Input, Select, Switch } from 'antd';
 import { ERROR_TEXTS } from '@/utils/error';
 import { FORM_MODE } from '@/utils/enum';
 import { hostValidator } from '@/utils/validator';
@@ -60,8 +60,35 @@ export default function TrinoProperties({ mode }: Props) {
             message: ERROR_TEXTS.CONNECTION.SCHEMAS.REQUIRED,
           },
         ]}
+        getValueProps={(value) => {
+          if (Array.isArray(value)) return { value };
+          if (typeof value === 'string' && value) {
+            return {
+              value: value
+                .split(',')
+                .map((s) => s.trim())
+                .filter(Boolean),
+            };
+          }
+          return { value: [] };
+        }}
+        normalize={(val) => {
+          if (Array.isArray(val)) {
+            return val
+              .map((s) => s.trim())
+              .filter(Boolean)
+              .join(', ');
+          }
+          return val;
+        }}
       >
-        <Input placeholder="catalog.schema1, catalog.schema2" />
+        <Select
+          mode="tags"
+          tokenSeparators={[',', ' ']}
+          placeholder="Input catalog.schema and press Enter"
+          open={false}
+          style={{ width: '100%' }}
+        />
       </Form.Item>
       <Form.Item
         label="Username"
