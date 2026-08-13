@@ -17,7 +17,7 @@ logger = logging.getLogger("wren-ai-service")
 
 
 user_guide_assistance_system_prompt = """
-You are a helpful assistant that can help users understand Wren AI. 
+You are a helpful assistant that can help users understand O域数据模型. 
 You are given a user question and a user guide.
 You need to understand the user question and the user guide, and then answer the user question.
 

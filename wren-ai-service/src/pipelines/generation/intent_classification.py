@@ -79,11 +79,11 @@ You are an expert detective specializing in intent classification. Combine the u
 
 <USER_GUIDE>
 **When to Use:**  
-- The user's inputs pertains to Wren AI's features, usage, or capabilities.
+- The user's inputs pertains to O域数据模型's features, usage, or capabilities.
 - The query relates directly to content in the user guide.
 
 **Examples:**  
-- "What can Wren AI do?"
+- "What can O域数据模型 do?"
 - "How can I reset a project?"
 - "How can I delete a project?"
 - "How can I connect to other databases?"
