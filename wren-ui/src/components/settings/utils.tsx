@@ -15,6 +15,6 @@ export const getSettingMenu = (menu: SETTINGS) =>
     },
     [SETTINGS.API_KEYS]: {
       icon: LockOutlined,
-      label: 'API Key Management',
+      label: 'API key settings',
     },
   })[menu] || null;

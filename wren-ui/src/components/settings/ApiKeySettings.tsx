@@ -317,7 +317,7 @@ export default function ApiKeySettings() {
           },
         });
 
-        message.success('API Key permissions updated successfully');
+        message.success('API key permissions updated successfully');
         setEditModalVisible(false);
         setEditingKey(null);
         refetch();
@@ -337,7 +337,7 @@ export default function ApiKeySettings() {
           },
         },
       });
-      message.success('API Key status updated');
+      message.success('API key status updated');
       refetch();
     } catch (err: any) {
       message.error('Failed to update API key status');
@@ -349,7 +349,7 @@ export default function ApiKeySettings() {
       await deleteApiKey({
         variables: { id },
       });
-      message.success('API Key deleted');
+      message.success('API key deleted');
       refetch();
     } catch (err: any) {
       message.error('Failed to delete API key');
@@ -360,7 +360,7 @@ export default function ApiKeySettings() {
     if (!tables || tables.includes('*')) {
       return (
         <Tag color="geekblue" style={{ margin: 0, borderRadius: 4 }}>
-          All Tables (*)
+          All tables (*)
         </Tag>
       );
     }
@@ -407,7 +407,7 @@ export default function ApiKeySettings() {
           icon={<PlusOutlined />}
           onClick={() => setCreateModalVisible(true)}
         >
-          Create API Key
+          Create API key
         </Button>
       </Header>
 
@@ -416,7 +416,7 @@ export default function ApiKeySettings() {
           <Spin />
         </div>
       ) : apiKeysList.length === 0 ? (
-        <Empty description="No API Keys created yet" style={{ margin: '40px 0' }} />
+        <Empty description="No API keys created yet" style={{ margin: '40px 0' }} />
       ) : (
         <KeyList>
           {apiKeysList.map((item: any) => (
@@ -442,7 +442,7 @@ export default function ApiKeySettings() {
                     onClick={() => handleOpenEdit(item)}
                   />
                   <Popconfirm
-                    title="Are you sure you want to delete this API Key?"
+                    title="Are you sure you want to delete this API key?"
                     onConfirm={() => handleDelete(item.id)}
                     okText="Yes"
                     cancelText="No"
@@ -477,7 +477,7 @@ export default function ApiKeySettings() {
 
       {/* Create Modal */}
       <Modal
-        title="Create New API Key"
+        title="Create new API key"
         visible={createModalVisible}
         onOk={handleCreate}
         confirmLoading={creating}
@@ -490,13 +490,13 @@ export default function ApiKeySettings() {
         <Form form={form} preserve={false} layout="vertical">
           <Form.Item
             name="name"
-            label="Key Name / Purpose"
+            label="Key name / purpose"
             rules={[{ required: true, message: 'Please enter key name' }]}
           >
             <Input placeholder="e.g. Sales Department Integration" />
           </Form.Item>
 
-          <Form.Item label="Authorized Data Tables">
+          <Form.Item label="Authorized data tables">
             <Checkbox
               checked={allTablesSelected}
               onChange={(e) => setAllTablesSelected(e.target.checked)}
@@ -507,7 +507,7 @@ export default function ApiKeySettings() {
             {!allTablesSelected && (
               <div style={{ marginTop: 12 }}>
                 <Typography.Text className="d-block gray-7 mb-2">
-                  Select specific tables allowed for this API Key:
+                  Select specific tables allowed for this API key:
                 </Typography.Text>
                 <Form.Item name="allowedTables" noStyle>
                   <PagedTableSelector availableModels={availableModels} />
@@ -520,7 +520,7 @@ export default function ApiKeySettings() {
 
       {/* Edit Permissions Modal */}
       <Modal
-        title="Edit API Key Permissions"
+        title="Edit API key permissions"
         visible={editModalVisible}
         onOk={handleSaveEdit}
         confirmLoading={updating}
@@ -536,13 +536,13 @@ export default function ApiKeySettings() {
         <Form form={editForm} preserve={false} layout="vertical">
           <Form.Item
             name="name"
-            label="Key Name / Purpose"
+            label="Key name / purpose"
             rules={[{ required: true, message: 'Please enter key name' }]}
           >
             <Input placeholder="e.g. Sales Department Integration" />
           </Form.Item>
 
-          <Form.Item label="Authorized Data Tables">
+          <Form.Item label="Authorized data tables">
             <Checkbox
               checked={editAllTablesSelected}
               onChange={(e) => setEditAllTablesSelected(e.target.checked)}
@@ -553,7 +553,7 @@ export default function ApiKeySettings() {
             {!editAllTablesSelected && (
               <div style={{ marginTop: 12 }}>
                 <Typography.Text className="d-block gray-7 mb-2">
-                  Select specific tables allowed for this API Key:
+                  Select specific tables allowed for this API key:
                 </Typography.Text>
                 <Form.Item name="allowedTables" noStyle>
                   <PagedTableSelector availableModels={availableModels} />
@@ -566,7 +566,7 @@ export default function ApiKeySettings() {
 
       {/* Raw Key Display Modal */}
       <Modal
-        title="API Key Created Successfully"
+        title="API key created successfully"
         visible={rawKeyModalVisible}
         onOk={() => setRawKeyModalVisible(false)}
         onCancel={() => setRawKeyModalVisible(false)}
@@ -577,7 +577,7 @@ export default function ApiKeySettings() {
         ]}
       >
         <Typography.Paragraph type="warning">
-          Please copy your API Key now. For security reasons, it will <strong>not be shown again</strong>.
+          Please copy your API key now. For security reasons, it will <strong>not be shown again</strong>.
         </Typography.Paragraph>
 
         <InputGroupWrapper>
@@ -594,7 +594,7 @@ export default function ApiKeySettings() {
                 if (navigator.clipboard && window.isSecureContext) {
                   navigator.clipboard
                     .writeText(text)
-                    .then(() => message.success('API Key copied to clipboard'))
+                    .then(() => message.success('API key copied to clipboard'))
                     .catch(() => fallbackCopy(text));
                 } else {
                   fallbackCopy(text);
@@ -613,7 +613,7 @@ export default function ApiKeySettings() {
                 try {
                   const successful = document.execCommand('copy');
                   if (successful) {
-                    message.success('API Key copied to clipboard');
+                    message.success('API key copied to clipboard');
                   } else {
                     message.error('Copy failed, please select and copy manually');
                   }
