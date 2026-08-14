@@ -1,10 +1,5 @@
-import { Button, Modal, Select, Row, Col, Form, message } from 'antd';
-import { useRouter } from 'next/router';
-import { Path } from '@/utils/enum';
-import {
-  useResetCurrentProjectMutation,
-  useUpdateCurrentProjectMutation,
-} from '@/apollo/client/graphql/settings.generated';
+import { Button, Select, Row, Col, Form, message } from 'antd';
+import { useUpdateCurrentProjectMutation } from '@/apollo/client/graphql/settings.generated';
 import { getLanguageText } from '@/utils/language';
 import { ProjectLanguage } from '@/apollo/client/graphql/__types__';
 
@@ -14,11 +9,7 @@ interface Props {
 
 export default function ProjectSettings(props: Props) {
   const { data } = props;
-  const router = useRouter();
   const [form] = Form.useForm();
-  const [resetCurrentProject, { client }] = useResetCurrentProjectMutation({
-    onError: (error) => console.error(error),
-  });
   const languageOptions = Object.keys(ProjectLanguage).map((key) => {
     return { label: getLanguageText(key as ProjectLanguage), value: key };
   });
@@ -30,19 +21,6 @@ export default function ProjectSettings(props: Props) {
       message.success('Successfully updated project language.');
     },
   });
-
-  const reset = () => {
-    Modal.confirm({
-      title: 'Are you sure you want to reset?',
-      okButtonProps: { danger: true },
-      okText: 'Reset',
-      onOk: async () => {
-        await resetCurrentProject();
-        client.clearStore();
-        router.push(Path.OnboardingConnection);
-      },
-    });
-  };
 
   const submit = () => {
     form
@@ -87,14 +65,6 @@ export default function ProjectSettings(props: Props) {
           </Row>
         </Form.Item>
       </Form>
-      <div className="gray-8 mb-2">Reset project</div>
-      <Button type="primary" style={{ width: 70 }} danger onClick={reset}>
-        Reset
-      </Button>
-      <div className="gray-6 mt-1">
-        Please be aware that resetting will delete all current settings and
-        records, including those in the Modeling Page and Home Page threads.
-      </div>
     </div>
   );
 }
