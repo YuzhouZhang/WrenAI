@@ -38,8 +38,8 @@ const Container = styled.div`
 
 const Header = styled.div`
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
+  justify-content: flex-end;
+  align-items: center;
   margin-bottom: 20px;
 `;
 
@@ -402,14 +402,6 @@ export default function ApiKeySettings() {
   return (
     <Container>
       <Header>
-        <div>
-          <div className="gray-9 text-bold text-lg" style={{ fontSize: 16, lineHeight: '24px' }}>
-            API Key Management
-          </div>
-          <div className="gray-7 mt-1" style={{ fontSize: 13 }}>
-            Manage API keys and table access permissions for external clients.
-          </div>
-        </div>
         <Button
           type="primary"
           icon={<PlusOutlined />}
