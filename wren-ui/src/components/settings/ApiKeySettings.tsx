@@ -18,7 +18,6 @@ import {
   Spin,
 } from '@/import/antd';
 import PlusOutlined from '@ant-design/icons/PlusOutlined';
-import CopyOutlined from '@ant-design/icons/CopyOutlined';
 import DeleteOutlined from '@ant-design/icons/DeleteOutlined';
 import EditOutlined from '@ant-design/icons/EditOutlined';
 import styled from 'styled-components';
@@ -40,7 +39,7 @@ const Header = styled.div`
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
 `;
 
 const KeyList = styled.div`
@@ -51,16 +50,18 @@ const KeyList = styled.div`
 
 const KeyCard = styled.div`
   background: #ffffff;
-  border: 1px solid var(--gray-4, #e5e7eb);
+  border: 1px solid var(--gray-4);
   border-radius: 8px;
-  padding: 14px 16px;
+  padding: 12px 16px;
   transition: all 0.2s ease-in-out;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 8px;
+  min-height: 86px;
+  box-sizing: border-box;
 
   &:hover {
-    border-color: #1890ff;
+    border-color: var(--geekblue-6);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   }
 `;
@@ -69,47 +70,46 @@ const CardTopRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: 24px;
 `;
 
 const CardTitleGroup = styled.div`
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
+  overflow: hidden;
+  min-width: 0;
 `;
 
 const CardBottomRow = styled.div`
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 10px;
-  border-top: 1px dashed var(--gray-4, #f0f0f0);
+  padding-top: 8px;
+  border-top: 1px dashed var(--gray-4);
+  height: 30px;
+  box-sizing: border-box;
 `;
 
 const MetaText = styled.span`
   font-size: 12px;
-  color: var(--gray-7, #8c8c8c);
+  color: var(--gray-7);
 `;
 
-const InputGroupWrapper = styled.div`
-  display: flex;
+const KeyDisplayBox = styled.div`
+  background: var(--gray-2);
+  border: 1px solid var(--gray-4);
+  border-radius: 6px;
+  padding: 12px 16px;
   margin-top: 16px;
-  width: 100%;
-  .ant-input {
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-  }
-  .ant-btn {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-  }
 `;
 
 const TableSelectorContainer = styled.div`
-  border: 1px solid var(--gray-4, #f0f0f0);
+  border: 1px solid var(--gray-4);
   border-radius: 6px;
   padding: 12px;
   margin-top: 8px;
-  background: var(--gray-1, #fafafa);
+  background: var(--gray-1);
 `;
 
 const SingleColumnList = styled.div`
@@ -124,7 +124,7 @@ const SingleColumnList = styled.div`
   .table-item {
     padding: 8px 12px;
     background: #ffffff;
-    border: 1px solid var(--gray-4, #e8e8e8);
+    border: 1px solid var(--gray-4);
     border-radius: 6px;
     display: flex;
     align-items: center;
@@ -132,12 +132,12 @@ const SingleColumnList = styled.div`
     transition: all 0.2s ease-in-out;
 
     &:hover {
-      border-color: #1890ff;
+      border-color: var(--geekblue-6);
     }
 
     &.selected {
-      background: #f0f7ff;
-      border-color: #91d5ff;
+      background: var(--geekblue-1, #f0f7ff);
+      border-color: var(--geekblue-4, #91d5ff);
     }
   }
 `;
@@ -145,9 +145,9 @@ const SingleColumnList = styled.div`
 const PrefixTag = styled(Tag)`
   font-family: SFMono-Regular, Consolas, 'Liberation Mono', Menlo, monospace;
   font-size: 12px;
-  background: #f4f5f7;
-  border: 1px solid #e2e4e8;
-  color: #4b5563;
+  background: var(--gray-3);
+  border: 1px solid var(--gray-4);
+  color: var(--gray-8);
   border-radius: 4px;
   padding: 1px 6px;
   margin: 0;
@@ -357,7 +357,7 @@ export default function ApiKeySettings() {
   };
 
   const renderAllowedTables = (tables: string[]) => {
-    if (!tables || tables.includes('*')) {
+    if (!tables || tables.length === 0 || tables.includes('*')) {
       return (
         <Tag color="geekblue" style={{ margin: 0, borderRadius: 4 }}>
           All tables (*)
@@ -365,35 +365,63 @@ export default function ApiKeySettings() {
       );
     }
 
-    if (tables.length <= 2) {
+    const firstTable = tables[0];
+    const allList = tables.join('\n');
+
+    if (tables.length === 1) {
       return (
-        <Space wrap size={[4, 4]}>
-          {tables.map((t) => (
-            <Tag key={t} style={{ margin: 0, borderRadius: 4 }}>
-              {t}
-            </Tag>
-          ))}
-        </Space>
+        <Tooltip title={firstTable}>
+          <Tag
+            style={{
+              margin: 0,
+              borderRadius: 4,
+              maxWidth: 240,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              display: 'inline-block',
+              verticalAlign: 'middle',
+            }}
+          >
+            {firstTable}
+          </Tag>
+        </Tooltip>
       );
     }
 
-    const firstTwo = tables.slice(0, 2);
-    const hiddenCount = tables.length - 2;
-    const allList = tables.join('\n');
-
+    const hiddenCount = tables.length - 1;
     return (
-      <Space wrap size={[4, 4]}>
-        {firstTwo.map((t) => (
-          <Tag key={t} style={{ margin: 0, borderRadius: 4 }}>
-            {t}
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0, overflow: 'hidden' }}>
+        <Tooltip title={firstTable}>
+          <Tag
+            style={{
+              margin: 0,
+              borderRadius: 4,
+              maxWidth: 180,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              display: 'inline-block',
+              verticalAlign: 'middle',
+            }}
+          >
+            {firstTable}
           </Tag>
-        ))}
-        <Tooltip title={<pre style={{ margin: 0, fontSize: 11 }}>{allList}</pre>}>
-          <Tag color="default" style={{ margin: 0, cursor: 'pointer', borderRadius: 4 }}>
+        </Tooltip>
+        <Tooltip title={<pre style={{ margin: 0, fontSize: 11, maxHeight: 200, overflowY: 'auto' }}>{allList}</pre>}>
+          <Tag
+            color="default"
+            style={{
+              margin: 0,
+              cursor: 'pointer',
+              borderRadius: 4,
+              flexShrink: 0,
+            }}
+          >
             +{hiddenCount} more
           </Tag>
         </Tooltip>
-      </Space>
+      </div>
     );
   };
 
@@ -416,20 +444,33 @@ export default function ApiKeySettings() {
           <Spin />
         </div>
       ) : apiKeysList.length === 0 ? (
-        <Empty description="No API keys created yet" style={{ margin: '40px 0' }} />
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="No API keys created yet"
+          style={{ margin: '32px 0' }}
+        />
       ) : (
         <KeyList>
           {apiKeysList.map((item: any) => (
             <KeyCard key={item.id}>
               <CardTopRow>
                 <CardTitleGroup>
-                  <PrefixTag>{item.keyPrefix}</PrefixTag>
-                  <span className="gray-9 text-bold" style={{ fontSize: 14 }}>
+                  <PrefixTag style={{ flexShrink: 0 }}>{item.keyPrefix}</PrefixTag>
+                  <span
+                    className="gray-9 text-bold"
+                    style={{
+                      fontSize: 14,
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                    }}
+                    title={item.name}
+                  >
                     {item.name}
                   </span>
                 </CardTitleGroup>
 
-                <Space size={10}>
+                <Space size={8} style={{ flexShrink: 0, marginLeft: 12 }}>
                   <Switch
                     checked={item.isActive}
                     onChange={() => handleToggleActive(item.id, item.isActive)}
@@ -444,8 +485,9 @@ export default function ApiKeySettings() {
                   <Popconfirm
                     title="Are you sure you want to delete this API key?"
                     onConfirm={() => handleDelete(item.id)}
-                    okText="Yes"
-                    cancelText="No"
+                    okText="Delete"
+                    cancelText="Cancel"
+                    okButtonProps={{ danger: true }}
                   >
                     <Button
                       type="text"
@@ -458,12 +500,12 @@ export default function ApiKeySettings() {
               </CardTopRow>
 
               <CardBottomRow>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  <MetaText>Permissions:</MetaText>
+                <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8, minWidth: 0, overflow: 'hidden' }}>
+                  <MetaText style={{ flexShrink: 0 }}>Permissions:</MetaText>
                   {renderAllowedTables(item.allowedTables)}
                 </div>
 
-                <MetaText>
+                <MetaText style={{ flexShrink: 0, whiteSpace: 'nowrap', marginLeft: 16 }}>
                   Created:{' '}
                   {item.createdAt
                     ? new Date(Number(item.createdAt) || item.createdAt).toLocaleDateString()
@@ -580,55 +622,19 @@ export default function ApiKeySettings() {
           Please copy your API key now. For security reasons, it will <strong>not be shown again</strong>.
         </Typography.Paragraph>
 
-        <InputGroupWrapper>
-          <Input
-            style={{ width: 'calc(100% - 80px)' }}
-            value={createdRawKey}
-            readOnly
-          />
-          <Button
-            type="default"
-            icon={<CopyOutlined />}
-            onClick={() => {
-              const copyToClipboard = (text: string) => {
-                if (navigator.clipboard && window.isSecureContext) {
-                  navigator.clipboard
-                    .writeText(text)
-                    .then(() => message.success('API key copied to clipboard'))
-                    .catch(() => fallbackCopy(text));
-                } else {
-                  fallbackCopy(text);
-                }
-              };
-
-              const fallbackCopy = (text: string) => {
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-
-                try {
-                  const successful = document.execCommand('copy');
-                  if (successful) {
-                    message.success('API key copied to clipboard');
-                  } else {
-                    message.error('Copy failed, please select and copy manually');
-                  }
-                } catch (err) {
-                  message.error('Copy failed, please select and copy manually');
-                }
-                document.body.removeChild(textArea);
-              };
-
-              copyToClipboard(createdRawKey);
+        <KeyDisplayBox>
+          <Typography.Paragraph
+            copyable={{ text: createdRawKey }}
+            style={{
+              margin: 0,
+              fontFamily: 'SFMono-Regular, Consolas, "Liberation Mono", Menlo, monospace',
+              fontSize: 13,
+              wordBreak: 'break-all',
             }}
           >
-            Copy
-          </Button>
-        </InputGroupWrapper>
+            {createdRawKey}
+          </Typography.Paragraph>
+        </KeyDisplayBox>
       </Modal>
     </Container>
   );
