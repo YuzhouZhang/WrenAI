@@ -73,7 +73,10 @@ export class Transformer {
     floor: 0,
   };
 
-  constructor(data: Diagram) {
+  constructor(data: Diagram, customConfig?: Partial<typeof Config>) {
+    if (customConfig) {
+      this.config = { ...Config, ...customConfig };
+    }
     this.models = data?.models || [];
     this.views = data?.views || [];
     this.init();
@@ -112,7 +115,7 @@ export class Transformer {
       const composeDiagrams: ComposeDiagram[] = [
         ...this.models,
         ...this.views,
-      ].slice(lastFloorIndex, lastFloorIndex + 4);
+      ].slice(lastFloorIndex, lastFloorIndex + nodesInRow);
 
       const modelWithMostColumns = composeDiagrams.reduce((prev, current) => {
         const prevColumns = [

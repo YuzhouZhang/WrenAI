@@ -28,7 +28,7 @@ import { trimId, highlightNodes, highlightEdges } from './utils';
 import { Diagram as DiagramData } from '@/utils/data';
 import { RefreshIcon } from '@/utils/icons';
 import { EDGE_TYPE, NODE_TYPE } from '@/utils/enum';
-import { DiagramCreator } from '@/utils/diagram';
+import { DiagramCreator, Config } from '@/utils/diagram';
 import { nextTick } from '@/utils/time';
 
 import 'reactflow/dist/style.css';
@@ -64,15 +64,44 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
   ref,
 ) {
   const { data, onMoreClick, onNodeClick, onAddClick } = props;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [containerWidth, setContainerWidth] = useState<number>(0);
   const isFirstFit = useRef(true);
   const [initialized, setInitialized] = useState(false);
   const [forceRender, setForceRender] = useState(false);
   const reactFlowInstance = useReactFlow();
   useImperativeHandle(ref, () => reactFlowInstance, [reactFlowInstance]);
 
+  useEffect(() => {
+    if (!containerRef.current) return;
+    const updateWidth = () => {
+      if (containerRef.current) {
+        setContainerWidth(containerRef.current.clientWidth);
+      }
+    };
+    updateWidth();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateWidth();
+    });
+    resizeObserver.observe(containerRef.current);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, []);
+
+  const nodesInRow = useMemo(() => {
+    if (!containerWidth) return Config.nodesInRow;
+    const itemWidth = Config.width + Config.marginX;
+    const availableWidth = containerWidth - 40;
+    const calculated = Math.floor((availableWidth + Config.marginX) / itemWidth);
+    return Math.max(1, calculated);
+  }, [containerWidth]);
+
   const diagram = useMemo(() => {
-    return new DiagramCreator(data).toJsonObject();
-  }, [data]);
+    return new DiagramCreator(data, { nodesInRow }).toJsonObject();
+  }, [data, nodesInRow]);
 
   useEffect(() => {
     setNodes(diagram.nodes);
@@ -161,7 +190,7 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
   return (
     <>
       <DiagramContext.Provider value={{ onMoreClick, onNodeClick, onAddClick }}>
-        <StyledReactFlowContainer $initialized={initialized}>
+        <StyledReactFlowContainer ref={containerRef} $initialized={initialized}>
           <ReactFlow
             nodes={nodes}
             edges={edges}
