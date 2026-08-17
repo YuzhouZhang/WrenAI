@@ -65,7 +65,7 @@ export default function Modeling() {
   const { data } = useDiagramQuery({
     fetchPolicy: 'cache-and-network',
     onCompleted: () => {
-      diagramRef.current?.fitView({ duration: 300 });
+      diagramRef.current?.fitView({ duration: 0 });
     },
   });
 

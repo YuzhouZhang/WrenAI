@@ -84,7 +84,7 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
         isFirstFit.current = false;
         setInitialized(true);
       } else {
-        reactFlowInstance.fitView({ duration: 300 });
+        reactFlowInstance.fitView({ duration: 0 });
       }
     });
   }, [diagram]);
@@ -129,7 +129,7 @@ const ReactFlowDiagram = forwardRef(function ReactFlowDiagram(
       isFirstFit.current = false;
       setInitialized(true);
     } else {
-      reactFlowInstance.fitView({ duration: 300 });
+      reactFlowInstance.fitView({ duration: 0 });
     }
     await nextTick(100);
     setForceRender(!forceRender);
