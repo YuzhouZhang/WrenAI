@@ -127,15 +127,15 @@ export const ERROR_TEXTS = {
   },
   CALCULATED_FIELD: {
     NAME: {
-      REQUIRED: 'Please input field name.',
+      REQUIRED: '请输入字段名称。',
     },
     EXPRESSION: {
-      REQUIRED: 'Please select an expression.',
+      REQUIRED: '请选择一个表达式。',
     },
     LINEAGE: {
-      REQUIRED: 'Please select a field.',
-      INVALID_STRING_TYPE: 'Please select a string type field.',
-      INVALID_NUMBER_TYPE: 'Please select a number type field.',
+      REQUIRED: '请选择一个关联字段。',
+      INVALID_STRING_TYPE: '请选择字符串类型的字段。',
+      INVALID_NUMBER_TYPE: '请选择数值类型的字段。',
     },
   },
   SQL_PAIR: {
