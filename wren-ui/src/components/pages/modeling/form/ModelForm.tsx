@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Form, FormInstance, Select } from 'antd';
+import { Button, Form, FormInstance, message, Select } from 'antd';
+import ReloadOutlined from '@ant-design/icons/ReloadOutlined';
 import { TransferItem } from 'antd/es/transfer';
 import { isEmpty } from 'lodash';
 import { FORM_MODE } from '@/utils/enum';
@@ -43,6 +44,7 @@ export default function ModelForm(props: Props) {
   const sourceTableFieldValue = Form.useWatch(FormFieldKey.SOURCE_TABLE, form);
 
   const isUpdateMode = formMode === FORM_MODE.EDIT;
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: listModelsQueryResult, loading: listModelsQueryLoading } =
     useListModelsQuery({
@@ -50,10 +52,25 @@ export default function ModelForm(props: Props) {
       skip: isUpdateMode,
     });
 
-  const { data, loading: fetching } = useListDataSourceTablesQuery({
+  const { data, loading: fetching, refetch } = useListDataSourceTablesQuery({
     fetchPolicy: 'cache-and-network',
     onError: (error) => console.error(error),
   });
+
+  const handleRefresh = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      setIsRefreshing(true);
+      await refetch({ refresh: true });
+      message.success('表元数据已更新至最新');
+    } catch (error) {
+      console.error(error);
+      message.error('刷新表元数据失败，请重试');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const dataSourceTables = data?.listDataSourceTables || [];
   const existingModels = listModelsQueryResult?.listModels;
@@ -133,7 +150,8 @@ export default function ModelForm(props: Props) {
 
   const onChangeColumns = (newKeys: string[]) => setSelectedColumns(newKeys);
 
-  const dataSourceTablesLoading = fetching || listModelsQueryLoading;
+  const dataSourceTablesLoading =
+    fetching || listModelsQueryLoading || isRefreshing;
 
   return (
     <>
@@ -141,7 +159,34 @@ export default function ModelForm(props: Props) {
         {!isUpdateMode && (
           <div>
             <Form.Item
-              label="Select a table"
+              label={
+                <div
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    width: '100%',
+                  }}
+                >
+                  <span>Select a table</span>
+                  <Button
+                    type="link"
+                    size="small"
+                    loading={isRefreshing}
+                    icon={<ReloadOutlined spin={isRefreshing} />}
+                    onClick={handleRefresh}
+                    style={{
+                      padding: 0,
+                      height: 'auto',
+                      fontSize: '12px',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                    }}
+                  >
+                    刷新元数据
+                  </Button>
+                </div>
+              }
               name={FormFieldKey.SOURCE_TABLE}
               required
               rules={[

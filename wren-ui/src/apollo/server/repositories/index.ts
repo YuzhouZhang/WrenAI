@@ -20,4 +20,4 @@ export * from './instructionRepository';
 export * from './apiHistoryRepository';
 export * from './dashboardItemRefreshJobRepository';
 export * from './apiKeyRepository';
-
+export * from './dataSourceMetadataCacheRepository';

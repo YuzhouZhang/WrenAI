@@ -188,7 +188,11 @@ export class ProjectResolver {
       const project = await ctx.projectService.getCurrentProject();
 
       // list all the tables in the data source
-      const tables = await this.listDataSourceTables(_root, _arg, ctx);
+      const tables = await this.listDataSourceTables(
+        _root,
+        { refresh: true },
+        ctx,
+      );
       const tableNames = tables.map((table) => table.name);
 
       // save tables as model and modelColumns
@@ -381,8 +385,16 @@ export class ProjectResolver {
     };
   }
 
-  public async listDataSourceTables(_root: any, _arg, ctx: IContext) {
-    return await ctx.projectService.getProjectDataSourceTables();
+  public async listDataSourceTables(
+    _root: any,
+    arg: { refresh?: boolean } | undefined,
+    ctx: IContext,
+  ) {
+    return await ctx.projectService.getProjectDataSourceTables(
+      undefined,
+      undefined,
+      arg?.refresh,
+    );
   }
 
   public async saveTables(

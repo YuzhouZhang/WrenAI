@@ -76,6 +76,18 @@ export type ApiHistoryResponse = {
   updatedAt: Scalars['String'];
 };
 
+export type ApiKey = {
+  __typename?: 'ApiKey';
+  allowedTables: Array<Scalars['String']>;
+  createdAt: Scalars['String'];
+  id: Scalars['ID'];
+  isActive: Scalars['Boolean'];
+  keyPrefix: Scalars['String'];
+  name: Scalars['String'];
+  projectId: Scalars['Int'];
+  updatedAt?: Maybe<Scalars['String']>;
+};
+
 export enum ApiType {
   ASK = 'ASK',
   CREATE_INSTRUCTION = 'CREATE_INSTRUCTION',
@@ -112,8 +124,8 @@ export type AskingTask = {
 
 export type AskingTaskInput = {
   question: Scalars['String'];
-  threadId?: InputMaybe<Scalars['Int']>;
   tables?: InputMaybe<Array<Scalars['String']>>;
+  threadId?: InputMaybe<Scalars['Int']>;
 };
 
 export enum AskingTaskStatus {
@@ -186,6 +198,17 @@ export type CompactTable = {
   columns: Array<CompactColumn>;
   name: Scalars['String'];
   properties?: Maybe<Scalars['JSON']>;
+};
+
+export type CreateApiKeyInput = {
+  allowedTables: Array<Scalars['String']>;
+  name: Scalars['String'];
+};
+
+export type CreateApiKeyPayload = {
+  __typename?: 'CreateApiKeyPayload';
+  apiKey: ApiKey;
+  rawKey: Scalars['String'];
 };
 
 export type CreateCalculatedFieldInput = {
@@ -682,6 +705,7 @@ export type Mutation = {
   adjustThreadResponseChart: ThreadResponse;
   cancelAdjustmentTask: Scalars['Boolean'];
   cancelAskingTask: Scalars['Boolean'];
+  createApiKey: CreateApiKeyPayload;
   createAskingTask: Task;
   createCalculatedField: Scalars['JSON'];
   createDashboardItem: DashboardItem;
@@ -693,6 +717,7 @@ export type Mutation = {
   createThread: Thread;
   createThreadResponse: ThreadResponse;
   createView: ViewInfo;
+  deleteApiKey: Scalars['Boolean'];
   deleteCalculatedField: Scalars['Boolean'];
   deleteDashboardItem: Scalars['Boolean'];
   deleteInstruction: Scalars['Boolean'];
@@ -726,6 +751,7 @@ export type Mutation = {
   setDashboardSchedule: Dashboard;
   startSampleDataset: Scalars['JSON'];
   triggerDataSourceDetection: Scalars['Boolean'];
+  updateApiKey: ApiKey;
   updateCalculatedField: Scalars['JSON'];
   updateCurrentProject: Scalars['Boolean'];
   updateDashboardItem: DashboardItem;
@@ -763,6 +789,11 @@ export type MutationCancelAdjustmentTaskArgs = {
 
 export type MutationCancelAskingTaskArgs = {
   taskId: Scalars['String'];
+};
+
+
+export type MutationCreateApiKeyArgs = {
+  data: CreateApiKeyInput;
 };
 
 
@@ -819,6 +850,11 @@ export type MutationCreateThreadResponseArgs = {
 
 export type MutationCreateViewArgs = {
   data: CreateViewInput;
+};
+
+
+export type MutationDeleteApiKeyArgs = {
+  id: Scalars['ID'];
 };
 
 
@@ -969,6 +1005,12 @@ export type MutationSetDashboardScheduleArgs = {
 
 export type MutationStartSampleDatasetArgs = {
   data: SampleDatasetInput;
+};
+
+
+export type MutationUpdateApiKeyArgs = {
+  data: UpdateApiKeyInput;
+  id: Scalars['ID'];
 };
 
 
@@ -1144,6 +1186,7 @@ export type Query = {
   __typename?: 'Query';
   adjustmentTask?: Maybe<AdjustmentTask>;
   apiHistory: ApiHistoryPaginatedResponse;
+  apiKeys: Array<ApiKey>;
   askingTask?: Maybe<AskingTask>;
   autoGenerateRelation: Array<RecommendRelations>;
   dashboard: DetailedDashboard;
@@ -1201,6 +1244,11 @@ export type QueryGetThreadRecommendationQuestionsArgs = {
 
 export type QueryInstantRecommendedQuestionsArgs = {
   taskId: Scalars['String'];
+};
+
+
+export type QueryListDataSourceTablesArgs = {
+  refresh?: InputMaybe<Scalars['Boolean']>;
 };
 
 
@@ -1500,6 +1548,12 @@ export type TimeGrainInput = {
   dateParts: Array<Scalars['String']>;
   name: Scalars['String'];
   refColumn: Scalars['String'];
+};
+
+export type UpdateApiKeyInput = {
+  allowedTables?: InputMaybe<Array<Scalars['String']>>;
+  isActive?: InputMaybe<Scalars['Boolean']>;
+  name?: InputMaybe<Scalars['String']>;
 };
 
 export type UpdateCalculatedFieldInput = {

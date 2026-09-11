@@ -10,7 +10,9 @@ export type StartSampleDatasetMutationVariables = Types.Exact<{
 
 export type StartSampleDatasetMutation = { __typename?: 'Mutation', startSampleDataset: any };
 
-export type ListDataSourceTablesQueryVariables = Types.Exact<{ [key: string]: never; }>;
+export type ListDataSourceTablesQueryVariables = Types.Exact<{
+  refresh?: Types.InputMaybe<Types.Scalars['Boolean']>;
+}>;
 
 
 export type ListDataSourceTablesQuery = { __typename?: 'Query', listDataSourceTables: Array<{ __typename?: 'CompactTable', name: string, columns: Array<{ __typename?: 'CompactColumn', name: string, type: string }> }> };
@@ -98,8 +100,8 @@ export type StartSampleDatasetMutationHookResult = ReturnType<typeof useStartSam
 export type StartSampleDatasetMutationResult = Apollo.MutationResult<StartSampleDatasetMutation>;
 export type StartSampleDatasetMutationOptions = Apollo.BaseMutationOptions<StartSampleDatasetMutation, StartSampleDatasetMutationVariables>;
 export const ListDataSourceTablesDocument = gql`
-    query ListDataSourceTables {
-  listDataSourceTables {
+    query ListDataSourceTables($refresh: Boolean) {
+  listDataSourceTables(refresh: $refresh) {
     name
     columns {
       name
@@ -121,6 +123,7 @@ export const ListDataSourceTablesDocument = gql`
  * @example
  * const { data, loading, error } = useListDataSourceTablesQuery({
  *   variables: {
+ *      refresh: // value for 'refresh'
  *   },
  * });
  */

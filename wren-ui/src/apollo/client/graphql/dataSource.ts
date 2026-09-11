@@ -7,8 +7,8 @@ export const SET_SAMPLE_DATASETS = gql`
 `;
 
 export const LIST_DATA_SOURCE_TABLES = gql`
-  query ListDataSourceTables {
-    listDataSourceTables {
+  query ListDataSourceTables($refresh: Boolean) {
+    listDataSourceTables(refresh: $refresh) {
       name
       columns {
         name

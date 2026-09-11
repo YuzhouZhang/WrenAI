@@ -6,7 +6,7 @@
 
 import { IIbisAdaptor } from '../adaptors/ibisAdaptor';
 import { IWrenEngineAdaptor } from '../adaptors/wrenEngineAdaptor';
-import { Project } from '../repositories';
+import { IDataSourceMetadataCacheRepository, Project } from '../repositories';
 import { DataSourceName } from '../types';
 import { getLogger } from '@server/utils';
 
@@ -46,7 +46,7 @@ export interface RecommendConstraint {
 }
 
 export interface IDataSourceMetadataService {
-  listTables(project: Project): Promise<CompactTable[]>;
+  listTables(project: Project, refresh?: boolean): Promise<CompactTable[]>;
   listConstraints(project: Project): Promise<RecommendConstraint[]>;
   getVersion(project: Project): Promise<string>;
 }
@@ -54,25 +54,72 @@ export interface IDataSourceMetadataService {
 export class DataSourceMetadataService implements IDataSourceMetadataService {
   private readonly ibisAdaptor: IIbisAdaptor;
   private readonly wrenEngineAdaptor: IWrenEngineAdaptor;
+  private readonly dataSourceMetadataCacheRepository?: IDataSourceMetadataCacheRepository;
 
   constructor({
     ibisAdaptor,
     wrenEngineAdaptor,
+    dataSourceMetadataCacheRepository,
   }: {
     ibisAdaptor: IIbisAdaptor;
     wrenEngineAdaptor: IWrenEngineAdaptor;
+    dataSourceMetadataCacheRepository?: IDataSourceMetadataCacheRepository;
   }) {
     this.ibisAdaptor = ibisAdaptor;
     this.wrenEngineAdaptor = wrenEngineAdaptor;
+    this.dataSourceMetadataCacheRepository = dataSourceMetadataCacheRepository;
   }
 
-  public async listTables(project): Promise<CompactTable[]> {
-    const { type: dataSource, connectionInfo } = project;
-    if (dataSource === DataSourceName.DUCKDB) {
-      const tables = await this.wrenEngineAdaptor.listTables();
-      return tables;
+  public async listTables(
+    project: Project,
+    refresh?: boolean,
+  ): Promise<CompactTable[]> {
+    if (!refresh && this.dataSourceMetadataCacheRepository && project?.id) {
+      try {
+        const cache =
+          await this.dataSourceMetadataCacheRepository.getByProjectId(
+            project.id,
+          );
+        if (cache && cache.tables && cache.tables.length > 0) {
+          logger.debug(
+            `Hit metadata cache for project ${project.id} with ${cache.tables.length} tables`,
+          );
+          return cache.tables;
+        }
+      } catch (err) {
+        logger.warn(
+          `Failed to read metadata cache for project ${project.id}:`,
+          err,
+        );
+      }
     }
-    return await this.ibisAdaptor.getTables(dataSource, connectionInfo);
+
+    const { type: dataSource, connectionInfo } = project;
+    let tables: CompactTable[];
+    if (dataSource === DataSourceName.DUCKDB) {
+      tables = await this.wrenEngineAdaptor.listTables();
+    } else {
+      tables = await this.ibisAdaptor.getTables(dataSource, connectionInfo);
+    }
+
+    if (this.dataSourceMetadataCacheRepository && project?.id && tables) {
+      try {
+        await this.dataSourceMetadataCacheRepository.upsertByProjectId(
+          project.id,
+          tables,
+        );
+        logger.debug(
+          `Cached ${tables.length} metadata tables for project ${project.id}`,
+        );
+      } catch (err) {
+        logger.error(
+          `Failed to cache metadata for project ${project.id}:`,
+          err,
+        );
+      }
+    }
+
+    return tables;
   }
 
   public async listConstraints(
@@ -90,3 +137,4 @@ export class DataSourceMetadataService implements IDataSourceMetadataService {
     return await this.ibisAdaptor.getVersion(dataSource, connectionInfo);
   }
 }
+

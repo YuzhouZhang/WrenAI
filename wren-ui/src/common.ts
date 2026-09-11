@@ -20,6 +20,7 @@ import {
   ApiHistoryRepository,
   DashboardItemRefreshJobRepository,
   ApiKeyRepository,
+  DataSourceMetadataCacheRepository,
 } from '@server/repositories';
 import {
   WrenEngineAdaptor,
@@ -77,6 +78,8 @@ export const initComponents = () => {
   const dashboardItemRefreshJobRepository =
     new DashboardItemRefreshJobRepository(knex);
   const apiKeyRepository = new ApiKeyRepository(knex);
+  const dataSourceMetadataCacheRepository =
+    new DataSourceMetadataCacheRepository(knex);
 
   // adaptors
   const wrenEngineAdaptor = new WrenEngineAdaptor({
@@ -93,6 +96,7 @@ export const initComponents = () => {
   const metadataService = new DataSourceMetadataService({
     ibisAdaptor,
     wrenEngineAdaptor,
+    dataSourceMetadataCacheRepository,
   });
   const queryService = new QueryService({
     ibisAdaptor,
@@ -199,6 +203,7 @@ export const initComponents = () => {
     instructionRepository,
     dashboardItemRefreshJobRepository,
     apiKeyRepository,
+    dataSourceMetadataCacheRepository,
 
     // adaptors
     wrenEngineAdaptor,

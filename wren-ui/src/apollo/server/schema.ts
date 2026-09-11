@@ -1141,7 +1141,7 @@ export const typeDefs = gql`
   # Query and Mutation
   type Query {
     # On Boarding Steps
-    listDataSourceTables: [CompactTable!]!
+    listDataSourceTables(refresh: Boolean): [CompactTable!]!
     autoGenerateRelation: [RecommendRelations!]!
     onboardingStatus: OnboardingStatusResponse!
 
