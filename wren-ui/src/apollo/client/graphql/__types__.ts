@@ -1191,6 +1191,7 @@ export type Query = {
   autoGenerateRelation: Array<RecommendRelations>;
   dashboard: DetailedDashboard;
   dashboardItems: Array<DashboardItem>;
+  dataSourceTable?: Maybe<CompactTable>;
   diagram: Diagram;
   getMDL: GetMdlResult;
   getProjectRecommendationQuestions: RecommendedQuestionsTask;
@@ -1229,6 +1230,11 @@ export type QueryApiHistoryArgs = {
 
 export type QueryAskingTaskArgs = {
   taskId: Scalars['String'];
+};
+
+
+export type QueryDataSourceTableArgs = {
+  name: Scalars['String'];
 };
 
 

@@ -10,6 +10,14 @@ export const LIST_DATA_SOURCE_TABLES = gql`
   query ListDataSourceTables($refresh: Boolean) {
     listDataSourceTables(refresh: $refresh) {
       name
+    }
+  }
+`;
+
+export const GET_DATA_SOURCE_TABLE = gql`
+  query DataSourceTable($name: String!) {
+    dataSourceTable(name: $name) {
+      name
       columns {
         name
         type

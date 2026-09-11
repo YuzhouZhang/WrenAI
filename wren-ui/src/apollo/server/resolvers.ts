@@ -27,6 +27,7 @@ const resolvers = {
   DialectSQL: DialectSQLScalar,
   Query: {
     listDataSourceTables: projectResolver.listDataSourceTables,
+    dataSourceTable: projectResolver.dataSourceTable,
     autoGenerateRelation: projectResolver.autoGenerateRelation,
     listModels: modelResolver.listModels,
     model: modelResolver.getModel,

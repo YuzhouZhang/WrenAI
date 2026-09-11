@@ -55,6 +55,7 @@ export class ProjectResolver {
     this.saveDataSource = this.saveDataSource.bind(this);
     this.updateDataSource = this.updateDataSource.bind(this);
     this.listDataSourceTables = this.listDataSourceTables.bind(this);
+    this.dataSourceTable = this.dataSourceTable.bind(this);
     this.saveTables = this.saveTables.bind(this);
     this.autoGenerateRelation = this.autoGenerateRelation.bind(this);
     this.saveRelations = this.saveRelations.bind(this);
@@ -395,6 +396,14 @@ export class ProjectResolver {
       undefined,
       arg?.refresh,
     );
+  }
+
+  public async dataSourceTable(
+    _root: any,
+    arg: { name: string },
+    ctx: IContext,
+  ) {
+    return await ctx.projectService.getProjectDataSourceTable(arg.name);
   }
 
   public async saveTables(

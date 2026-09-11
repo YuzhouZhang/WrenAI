@@ -1142,6 +1142,7 @@ export const typeDefs = gql`
   type Query {
     # On Boarding Steps
     listDataSourceTables(refresh: Boolean): [CompactTable!]!
+    dataSourceTable(name: String!): CompactTable
     autoGenerateRelation: [RecommendRelations!]!
     onboardingStatus: OnboardingStatusResponse!
 

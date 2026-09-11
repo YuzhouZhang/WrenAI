@@ -61,6 +61,11 @@ export interface IProjectService {
     projectId?: number,
     refresh?: boolean,
   ) => Promise<CompactTable[]>;
+  getProjectDataSourceTable: (
+    tableName: string,
+    project?: Project,
+    projectId?: number,
+  ) => Promise<CompactTable | null>;
   getProjectDataSourceVersion: (
     project?: Project,
     projectId?: number,
@@ -201,6 +206,19 @@ export class ProjectService implements IProjectService {
         ? await this.getProjectById(projectId)
         : await this.getCurrentProject();
     return await this.metadataService.listTables(usedProject, refresh);
+  }
+
+  public async getProjectDataSourceTable(
+    tableName: string,
+    project?: Project,
+    projectId?: number,
+  ) {
+    const usedProject = project
+      ? project
+      : projectId
+        ? await this.getProjectById(projectId)
+        : await this.getCurrentProject();
+    return await this.metadataService.getTable(usedProject, tableName);
   }
 
   public async getProjectSuggestedConstraint(

@@ -9,13 +9,13 @@ const { Title, Text } = Typography;
 
 interface Props {
   fetching: boolean;
-  tables: CompactTable[];
+  tables: Array<{ name: string }>;
   onNext: (data: { selectedTables: string[] }) => void;
   onBack: () => void;
   submitting: boolean;
 }
 
-const columns: ColumnsType<CompactTable> = [
+const columns: ColumnsType<{ name: string }> = [
   {
     title: 'Table name',
     dataIndex: 'name',

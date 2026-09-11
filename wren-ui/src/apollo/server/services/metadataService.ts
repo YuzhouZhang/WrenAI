@@ -47,6 +47,7 @@ export interface RecommendConstraint {
 
 export interface IDataSourceMetadataService {
   listTables(project: Project, refresh?: boolean): Promise<CompactTable[]>;
+  getTable(project: Project, tableName: string): Promise<CompactTable | null>;
   listConstraints(project: Project): Promise<RecommendConstraint[]>;
   getVersion(project: Project): Promise<string>;
 }
@@ -120,6 +121,34 @@ export class DataSourceMetadataService implements IDataSourceMetadataService {
     }
 
     return tables;
+  }
+
+  public async getTable(
+    project: Project,
+    tableName: string,
+  ): Promise<CompactTable | null> {
+    if (this.dataSourceMetadataCacheRepository && project?.id) {
+      try {
+        const cache =
+          await this.dataSourceMetadataCacheRepository.getByProjectId(
+            project.id,
+          );
+        if (cache && cache.tables && cache.tables.length > 0) {
+          const found = cache.tables.find((t) => t.name === tableName);
+          if (found) {
+            return found;
+          }
+        }
+      } catch (err) {
+        logger.warn(
+          `Failed to read metadata cache for project ${project.id} in getTable:`,
+          err,
+        );
+      }
+    }
+
+    const tables = await this.listTables(project);
+    return tables.find((t) => t.name === tableName) || null;
   }
 
   public async listConstraints(

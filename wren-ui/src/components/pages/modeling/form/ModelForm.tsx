@@ -11,7 +11,10 @@ import { Loading } from '@/components/PageLoading';
 import TableTransfer, {
   defaultColumns,
 } from '@/components/table/TableTransfer';
-import { useListDataSourceTablesQuery } from '@/apollo/client/graphql/dataSource.generated';
+import {
+  useListDataSourceTablesQuery,
+  useDataSourceTableLazyQuery,
+} from '@/apollo/client/graphql/dataSource.generated';
 import { useListModelsQuery } from '@/apollo/client/graphql/model.generated';
 import { CompactColumn } from '@/apollo/client/graphql/__types__';
 
@@ -57,12 +60,30 @@ export default function ModelForm(props: Props) {
     onError: (error) => console.error(error),
   });
 
+  const [
+    getDataSourceTable,
+    { data: tableData, loading: tableLoading, refetch: refetchTable },
+  ] = useDataSourceTableLazyQuery({
+    fetchPolicy: 'cache-first',
+    onError: (error) => console.error(error),
+  });
+
   const handleRefresh = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     try {
       setIsRefreshing(true);
       await refetch({ refresh: true });
+      if (sourceTableName) {
+        if (refetchTable) {
+          await refetchTable({ name: sourceTableName });
+        } else {
+          await getDataSourceTable({
+            variables: { name: sourceTableName },
+            fetchPolicy: 'network-only',
+          });
+        }
+      }
       message.success('表元数据已更新至最新');
     } catch (error) {
       console.error(error);
@@ -79,15 +100,31 @@ export default function ModelForm(props: Props) {
     [existingModels],
   );
 
+  // Edit mode initialization
+  useEffect(() => {
+    if (isUpdateMode && defaultValue?.sourceTableName) {
+      setSourceTableName(defaultValue.sourceTableName);
+      getDataSourceTable({
+        variables: { name: defaultValue.sourceTableName },
+      });
+    }
+  }, [isUpdateMode, defaultValue, getDataSourceTable]);
+
+  // Create mode: reset selected columns and fetch table columns when source table changes
   useEffect(() => {
     if (isUpdateMode) return;
 
-    // for create mode, reset selected columns when source table changes
     setSelectedColumns([]);
     form.resetFields([FormFieldKey.PRIMARY_KEY]);
-  }, [formMode, sourceTableName]);
 
-  // for create mode
+    if (sourceTableName) {
+      getDataSourceTable({
+        variables: { name: sourceTableName },
+      });
+    }
+  }, [formMode, sourceTableName, isUpdateMode, form, getDataSourceTable]);
+
+  // For create mode: listen to form field changes
   useEffect(() => {
     if (sourceTableFieldValue) {
       setSourceTableName(sourceTableFieldValue);
@@ -101,19 +138,17 @@ export default function ModelForm(props: Props) {
   }> = useMemo(() => {
     if (isEmpty(sourceTableName)) return [];
 
-    const table = dataSourceTables.find(
-      (table) => table.name === sourceTableName,
-    )!;
-    if (!table) return [];
+    const tableColumns = tableData?.dataSourceTable?.columns;
+    if (!tableColumns) return [];
 
-    return table.columns.map((column: CompactColumn) => ({
+    return tableColumns.map((column: CompactColumn) => ({
       ...column,
       key: column.name,
     }));
-  }, [dataSourceTables, sourceTableName]);
+  }, [tableData, sourceTableName]);
 
   useEffect(() => {
-    if (defaultValue) {
+    if (defaultValue && columns.length > 0) {
       const fields: string[] = defaultValue.fields
         .map((field: DiagramModelField) => field.referenceName)
         .filter((col) => columns.find((c) => c.name === col));
@@ -212,7 +247,7 @@ export default function ModelForm(props: Props) {
             </Form.Item>
           </div>
         )}
-        <Loading spinning={isUpdateMode ? dataSourceTablesLoading : false}>
+        <Loading spinning={tableLoading}>
           <Form.Item
             label="Select columns"
             name={FormFieldKey.COLUMNS}
