@@ -1,5 +1,5 @@
 """
-批量修改模型 ID=110 (资源中心_光纤收发器设备信息) 的显示名和描述
+批量修改模型 ID=116 (资源管理中心_集客其它业务设备) 的显示名和描述
 使用精确的字段映射数据，通过 wren-ui GraphQL API 更新
 将字段显示名和描述更新为对应描述
 """
@@ -14,10 +14,13 @@ if hasattr(sys.stdout, 'reconfigure'):
 
 # ========== 配置 ==========
 GRAPHQL_URL = "http://wren-ui:3000/api/graphql"
-MODEL_ID = 110
-MODEL_NEW_DISPLAY_NAME = "资源中心_光纤收发器设备信息"
+MODEL_ID = 116
+MODEL_NEW_DISPLAY_NAME = "资源管理中心_集客其它业务设备"
 MODEL_NEW_DESCRIPTION = (
-    "光纤收发器设备信息表，记录设备的维护单位、责任人、联系方式、产权单位等信息，用于设备管理和维护。"
+    "集客其它业务设备表，记录集客业务设备的详细信息，包括设备的覆盖范围、维护单位、维护责任人、联系电话、"
+    "IP地址、产权单位、版本信息、固定资产编号、产品实例标识、客户端客户设备端口类型、客户端客户设备端口编号、"
+    "端口状态、互联IP地址、客户端设备VLAN、客户端设备MAC地址、业务接入点经纬度、业务设备层级、业务设备类型等，"
+    "用于设备管理和维护。"
 )
 # ==========================
 
@@ -25,27 +28,26 @@ MODEL_NEW_DESCRIPTION = (
 # 键为小写引用名（与 WrenAI 中存储的一致）
 # 显示名与描述保持一致
 FIELD_MAP = {
-    "extensionid": ("引用标识", "光纤收发器设备的唯一标识"),
-    "coverage": ("覆盖范围", "设备覆盖的地理范围"),
-    "maintenanceunit": ("维护单位", "负责设备维护的单位"),
-    "maintenanceowner": ("维护责任人", "负责设备维护的责任人"),
-    "contactphone": ("联系电话", "维护单位的联系电话"),
-    "phone": ("固定电话", "维护单位的固定电话"),
-    "mobile": ("移动电话", "维护单位的移动电话"),
-    "ipaddress": ("IP地址", "设备的IP地址"),
-    "propertyrightunit_": ("产权单位", "设备的产权单位"),
-    "versioninformation": ("版本信息", "设备的版本信息"),
-    "fixedassetnumber": ("固定资产编号", "设备的固定资产编号"),
-    "productinstance": ("产品实例标识", "设备的产品实例标识"),
-    "customerinterfacetype": ("客户端客户设备端口类型", "客户端客户设备端口的类型"),
-    "customerportno": ("客户端客户设备端口编号", "客户端客户设备端口的编号"),
-    "portstatus": ("端口状态", "设备端口的状态"),
-    "deviceconnectip": ("互联IP地址", "设备互联的IP地址"),
-    "customerdevicevlan": ("客户端设备VLAN", "客户端设备的VLAN"),
-    "propertyrightunit": ("产权单位编号", "设备产权单位的编号"),
-    "customerdevicemacaddress": ("客户端设备MAC地址", "客户端设备的MAC地址"),
-    "businessaccesspointlongitude": ("业务接入点经度", "业务接入点的经度"),
-    "businessaccesspointlatitude": ("业务接入点纬度", "业务接入点的纬度"),
+    "extensionid": ("引用标识", "设备引用标识"),
+    "coverage": ("覆盖范围", "设备覆盖范围"),
+    "maintenanceunit": ("维护单位", "设备维护单位"),
+    "maintenanceowner": ("维护责任人", "设备维护责任人"),
+    "contactphone": ("联系电话", "设备维护责任人联系电话"),
+    "ipaddress": ("IP地址", "设备IP地址"),
+    "propertyrightunit": ("产权单位", "设备产权单位"),
+    "versioninformation": ("版本信息", "设备版本信息"),
+    "fixedassetnumber": ("固定资产编号", "设备固定资产编号"),
+    "productinstance": ("产品实例标识", "产品实例标识"),
+    "customerinterfacetype": ("客户端客户设备端口类型", "客户端客户设备端口类型"),
+    "customerportno": ("客户端客户设备端口编号", "客户端客户设备端口编号"),
+    "portstatus": ("端口状态", "端口状态"),
+    "deviceconnectip": ("互联IP地址", "互联IP地址"),
+    "customerdevicevlan": ("客户端设备VLAN", "客户端设备VLAN"),
+    "customerdevicemacaddress": ("客户端设备MAC地址", "客户端设备MAC地址"),
+    "businessaccesspointlongitude": ("业务接入点经度", "业务接入点经度"),
+    "businessaccesspointlatitude": ("业务接入点纬度", "业务接入点纬度"),
+    "businesslevel_0808_": ("业务设备层级", "业务设备层级"),
+    "businessdevicetype": ("业务设备类型", "业务设备类型"),
 }
 
 
